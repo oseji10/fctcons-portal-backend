@@ -9,6 +9,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
 use App\Models\Photo;
 use App\Models\OlevelResult;
+use App\Models\User;
+
 
 class ApplicationController extends Controller
 {
@@ -67,18 +69,17 @@ class ApplicationController extends Controller
                 'gender' => 'required|string|in:Male,Female,Other',
                 'dateOfBirth' => 'required|date',
                 'maritalStatus' => 'nullable|string|in:Single,Married,Divorced,Widowed',
-                
-                'examType' => 'required|string|in:WAEC,NECO,NABTEB',
-                'examYear' => 'required|integer|min:1980|max:' . date('Y'),
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
             ]);
 
             // Validate olevelResults separately since it may have been decoded
             $request->merge(['olevelResults' => $olevelResults]); // Update request with decoded array
             $request->validate([
-                'olevelResults' => 'required|array|min:5',
+                'olevelResults' => 'required|array|min:1',
                 'olevelResults.*.subject' => 'required|string|max:255',
                 'olevelResults.*.grade' => 'required|string|in:A1,B2,B3,C4,C5,C6',
+                'olevelResults.*.examType' => 'required|string|in:WAEC,NECO,NABTEB',
+                'olevelResults.*.examYear' => 'required|integer|min:1980|max:' . date('Y'),
             ]);
 
             // Get authenticated user
@@ -96,8 +97,8 @@ class ApplicationController extends Controller
                 'dateOfBirth' => $validated['dateOfBirth'],
                 'maritalStatus' => $validated['maritalStatus'] ?? null,
                 
-                'examType' => $validated['examType'],
-                'examYear' => $validated['examYear'],
+                // 'examType' => $validated['examType'],
+                // 'examYear' => $validated['examYear'],
                 'olevelResults' => json_encode($olevelResults),
                 'status' => 'unpaid',
             ];
@@ -129,12 +130,12 @@ class ApplicationController extends Controller
             // Create new results
             foreach ($olevelResults as $result) {
                 OlevelResult::create([
-                    'examYear' => $validated['examYear'],
-                    'examType' => $validated['examType'],
-                    'applicationId' => $application->applicationId,
-                    'subject' => $result['subject'],
-                    'grade' => $result['grade'],
-                ]);
+    'applicationId' => $application->applicationId,
+    'subject' => $result['subject'],
+    'grade' => $result['grade'],
+    'examYear' => $result['examYear'],
+    'examType' => $result['examType'],
+]);
             }
 
 
@@ -223,7 +224,7 @@ class ApplicationController extends Controller
     $payerName = "Victor Oseji";
     $payerEmail = "vctroseji@gmail.com";
     $payerPhone = "08137054875";
-    
+
     $hash = generateRemitaHash($orderId, $amount);
 
     $payload = [
@@ -253,4 +254,11 @@ class ApplicationController extends Controller
     }
 }
    
+
+// Application current stats
+public function status(Request $request, $email){
+    $user = User::where('email', $email)->first();
+    $status = Applications::where('userId', $user->id)->with('payments')->first();
+    return response()->json($status);
+}
 }

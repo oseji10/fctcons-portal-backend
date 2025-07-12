@@ -30,9 +30,9 @@ class Applications extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    public function patientsHospital()
+    public function payments()
     {
-        return $this->hasMany(Patient::class, 'hospital', 'hospitalId');
+        return $this->belongsTo(Payment::class, 'applicationId', 'applicationId');
     } 
 
     public function contact_person()

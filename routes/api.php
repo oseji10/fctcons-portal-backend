@@ -15,7 +15,7 @@ use App\Http\Controllers\MinistryController;
 use App\Http\Controllers\CadreController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\StockController;
-use App\Http\Controllers\ProductRequestController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\JAMBController;
 use App\Http\Controllers\ApplicationController;
@@ -64,6 +64,10 @@ use App\Http\Controllers\ApplicationController;
        
     Route::post('/apply', [ApplicationController::class, 'apply']);
     Route::get('/applications', [ApplicationController::class, 'index']);
+    Route::get('/application/status/{email}', [ApplicationController::class, 'status']);
+
+    Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
+    Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
 
     });
         Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBeneficiaries']);

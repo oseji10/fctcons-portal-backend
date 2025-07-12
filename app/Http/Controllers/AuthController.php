@@ -211,7 +211,7 @@ public function candidateRegister(Request $request)
             $validated = $request->validate([
                 'firstName' => 'required|string|max:255',
                 'lastName' => 'required|string|max:255',
-                'phoneNumber' => 'nullable|string|unique:users,phoneNumber|max:14|regex:/^\+?\d{10,15}$/',
+                'phoneNumber' => 'nullable|string|max:14|regex:/^\+?\d{10,15}$/',
                 'otherNames' => 'nullable|string|max:255',
                 'email' => 'required|email|unique:users,email|max:255',
                 'password' => 'required|string|min:6',
@@ -248,6 +248,7 @@ public function candidateRegister(Request $request)
                 'applicationId' => $applicationId,
                 'applicationType' => $validated['applicationType'],
                 'jambId' => $validated['jambId'],
+                'status' => 'not submitted'
             ]);
 
             Log::info('User created:', ['email' => $user->email]);
