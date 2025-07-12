@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('portal_settings', function (Blueprint $table) {
             $table->id();
+            $table->string('applicationStartDate')->nullable();
+            $table->string('applicationEndDate')->nullable();
+            $table->string('examStartDate')->nullable();
+            $table->string('examEndDate')->nullable();
+            $table->unsignedBigInteger('applicationActivatedBy')->nullable();
             $table->timestamps();
         });
     }

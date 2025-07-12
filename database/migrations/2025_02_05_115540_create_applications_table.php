@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('alternatePhoneNumber')->nullable();
             // $table->string('email')->nullable();
             $table->string('licenceId')->nullable();
-            $table->unsignedBigInteger('batch')->nullable();
+            $table->string('batch')->nullable();
             $table->unsignedBigInteger('applicationType')->nullable();
             $table->unsignedBigInteger('userId')->nullable();
             
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('status')->default('account_created');
 
             $table->timestamps();
-            $table->softDeletes();  
+            $table->softDeletes();
         });
         
         // Foreign keys will be added manually after table creation
@@ -44,6 +44,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('patients');
+        Schema::dropIfExists('applications');
     }
 };

@@ -19,6 +19,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\JAMBController;
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\BatchController;
+use App\Http\Controllers\PDFController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -69,7 +71,19 @@ use App\Http\Controllers\ApplicationController;
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
 
+    Route::get('/batches', [BatchController::class, 'index']);
+    Route::post('/batches', [BatchController::class, 'store']);
+
+    Route::get('/batched-applicants', function () {
+    return \App\Models\BatchAssignment::with('applicants')->latest()->paginate(20);
     });
+
+    Route::get('/verify/slip', function () {
+    return "This is authentic!";
+    })->name('verify.slip');
+
+});
+Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);
         Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBeneficiaries']);
 
     Route::options('{any}', function () {

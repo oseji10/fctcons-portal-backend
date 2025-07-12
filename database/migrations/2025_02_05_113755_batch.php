@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('batches', function (Blueprint $table) {
-            $table->id('batchId');
+            $table->id();
+            $table->string('batchId')->nullable();
             $table->string('batchName')->nullable();
             $table->string('examDate')->nullable();
             $table->string('examTime')->nullable();

@@ -35,13 +35,24 @@ class Applications extends Model
         return $this->belongsTo(Payment::class, 'applicationId', 'applicationId');
     } 
 
-    public function contact_person()
-    {
-        return $this->belongsTo(User::class, 'contactPerson', 'id');
-    } 
+  public function batch_relation()
+{
+    return $this->belongsTo(Batch::class, 'batch', 'batchId');
+}
+
+  public function olevelresults()
+{
+    return $this->hasMany(OlevelResult::class, 'applicationId', 'applicationId');
+}
+
 
     public function application_type()
     {
         return $this->belongsTo(ApplicationType::class, 'applicationType', 'typeId');
+    } 
+
+     public function users()
+    {
+        return $this->belongsTo(User::class, 'userId', 'id');
     } 
 }

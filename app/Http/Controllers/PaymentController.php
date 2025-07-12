@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Applications;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Batch;
+use App\Models\BatchAssignment;
 use App\Models\PaymentSetting;
 use Illuminate\Support\Str;
-
+use DB;
 class PaymentController extends Controller
 {
     public function initiatePayment(Request $request)
@@ -211,6 +213,19 @@ class PaymentController extends Controller
                 'channel' => $responseData['channel'] ?? null,
                 'paymentDate' => now(),
             ]);
+    $applicant = Applications::where('applicationId', $applicationId)->first(); // or Application::...
+     $payment->update(['status' => 'paid']);
+    $this->assignBatchToCandidate($applicant);
+    BatchAssignment::updateOrCreate(
+    [
+        'applicationId' => $applicant->applicationId,
+        // 'batchId' => $applicant->batch,
+    ],
+    [
+        'batchId' => $applicant->batch,
+        'assigned_at' => now(), // ✅ only goes into the update/insert data
+    ]
+);
 
             return response()->json([
                 'status' => 'success',
@@ -231,5 +246,56 @@ class PaymentController extends Controller
         ], 500);
     }
 }
+
+
+
+
+private function assignBatchToCandidate(Applications $applicant)
+{
+
+DB::transaction(function () use ($applicant) {
+    // ✅ Skip if already assigned
+    if ($applicant->batch) {
+        return; // Already assigned, skip
+    }
+
+    $batches = Batch::orderByRaw("LENGTH(batchId), batchId")->get();
+
+    foreach ($batches as $batch) {
+        $assignedCount = Applications::where('batch', $batch->batchId)->count();
+
+        if ($assignedCount < $batch->capacity) {
+            // ✅ Assign batch to candidate
+            $applicant->batch = $batch->batchId;
+            $applicant->save();
+
+            // // ✅ Log assignment
+            // BatchAssignment::create([
+            //     'applicationId' => $applicant->applicationId,
+            //     'batchId' => $batch->batchId,
+            //     'assigned_at' => now(),
+            // ]);
+
+            return;
+        }
+    }
+
+    throw new \Exception("No available batch with free capacity");
+});
+
+}
+
+ 
+public function logBatchInfo (Applications $applicant) {
+// ✅ Log assignment
+$batch = $applicant->batch->batchId;
+            BatchAssignment::create([
+                'applicationId' => $applicant->applicationId,
+                'batchId' => $batch->batchId,
+                'assigned_at' => now(),
+            ]);
+
+}
+
 
 }
