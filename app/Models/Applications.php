@@ -55,4 +55,9 @@ class Applications extends Model
     {
         return $this->belongsTo(User::class, 'userId', 'id');
     } 
+
+     public function jamb()
+    {
+        return $this->belongsTo(JAMB::class, 'jambId', 'jambId');
+    } 
 }

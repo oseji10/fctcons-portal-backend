@@ -93,6 +93,7 @@ class AuthController extends Controller
         'message' => 'Logged in',
         'firstName' => $user->firstName ?? '',
         'lastName' => $user->lastName ?? '',
+        'otherNames' => $user->otherNames ?? '',
         'email' => $user->email ?? '',
         'phoneNumber' => $user->phoneNumber ?? '',
         // 'role' => $user->role ? $user->role->roleName ?? '' : '', // Safe access
@@ -239,7 +240,8 @@ public function candidateRegister(Request $request)
                 'password' => Hash::make($validated['password']),
                 'applicationType' => $validated['applicationType'],
                 'role' => 1, // Hardcoded role for candidate
-                'jambId' => $validated['jambId'],
+                'jambId' => $validated['jambId'] ?? null,
+
             ]);
 
             // Create application
@@ -247,7 +249,7 @@ public function candidateRegister(Request $request)
                 'userId' => $user->id,
                 'applicationId' => $applicationId,
                 'applicationType' => $validated['applicationType'],
-                'jambId' => $validated['jambId'],
+                'jambId' => $validated['jambId'] ?? null,
                 'status' => 'not submitted'
             ]);
 
@@ -270,7 +272,7 @@ public function candidateRegister(Request $request)
             return response()->json([
                 'status' => 'success',
                 'message' => 'Registration successful! Please check your email for a welcome message.',
-                'applicationId' => $applicationId,
+                // 'applicationId' => $applicationId,
             ], 201);
 
         } catch (ValidationException $e) {

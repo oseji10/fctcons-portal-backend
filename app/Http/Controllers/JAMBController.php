@@ -12,11 +12,29 @@ use Illuminate\Http\JsonResponse;
 class JAMBController extends Controller
 {
     public function index(Request $request)
-    {
-        $perPage = $request->query('per_page', 10);
-        $jambs = JAMB::orderBy('id', 'desc')->paginate($perPage);
-        return response()->json($jambs);
+{
+    $perPage = $request->query('per_page', 10);
+    $state = $request->query('state');
+    $search = $request->query('search');
+    
+    $query = JAMB::orderBy('id', 'desc');
+    
+    if ($state) {
+        $query->where('state', $state);
     }
+    
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('firstName', 'like', "%$search%")
+              ->orWhere('lastName', 'like', "%$search%")
+              ->orWhere('jambId', 'like', "%$search%");
+        });
+    }
+    
+    $jambs = $query->paginate($perPage);
+    
+    return response()->json($jambs);
+}
 
     public function destroy($jambId)
     {
@@ -47,7 +65,7 @@ class JAMBController extends Controller
     {
         // Validate the incoming request
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:xls,xlsx|max:2048',
+            'file' => 'required|file|mimes:csv|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -69,10 +87,9 @@ class JAMBController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'JAMB records uploaded successfully',
-                'data' => [
-                    'successful' => $successfulCount,
-                    'skipped' => $skippedCount
-                ]
+                'added' => $successfulCount,
+                'skipped' => $skippedCount,
+                
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

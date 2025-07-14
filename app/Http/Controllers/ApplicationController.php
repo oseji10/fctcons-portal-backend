@@ -16,8 +16,8 @@ class ApplicationController extends Controller
 {
     public function index()
     {
-        // This method should return a list of hospitals
-        $applications = Applications::with(['jamb', 'user'])->get();
+        // This method should return a list of applicants
+        $applications = Applications::with(['users'])->get();
         if ($applications->isEmpty()) {
             return response()->json(['message' => 'No applicants found'], 404);
         }

@@ -52,6 +52,7 @@ use App\Http\Controllers\PDFController;
             return response()->json([
                 'firstName' => $user->firstName,
                 'lastName' => $user->lastName,
+                'otherNames' => $user->otherNames,
                 'email' => $user->email,
                 'role' => $user->role,
                 'id' => $user->id,
