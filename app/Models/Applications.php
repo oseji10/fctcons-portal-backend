@@ -60,4 +60,9 @@ class Applications extends Model
     {
         return $this->belongsTo(JAMB::class, 'jambId', 'jambId');
     } 
+
+      public function photograph()
+    {
+        return $this->belongsTo(Photo::class, 'applicationId', 'applicationId');
+    } 
 }

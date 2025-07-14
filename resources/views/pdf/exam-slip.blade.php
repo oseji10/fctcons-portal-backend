@@ -191,12 +191,13 @@
             <h1>FCT College of Nursing Sciences</h1>
             <h2>2025 Application Exam Slip</h2>
             <div class="photo-placeholder">
-                @if ($photoPath)
-                    <img src="{{ $photoPath }}" alt="Candidate Photo">
-                @else
-                    <span>Passport</span>
-                @endif
-            </div>
+                <!-- @if(file_exists(public_path($photoPath)))
+@php
+    $imageData = base64_encode(file_get_contents(public_path($photoPath)));
+    $src = 'data:image/'.pathinfo($photoPath, PATHINFO_EXTENSION).';base64,'.$imageData;
+@endphp
+@endif -->
+<img src="{{ $passport }}" alt="Candidate Photo">
         </div>
         <div class="exam-details">
             <h3>Examination Details</h3>

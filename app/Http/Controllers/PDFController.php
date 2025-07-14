@@ -44,6 +44,33 @@ $imageData = base64_encode(file_get_contents($imagePath));
 $imageType = pathinfo($imagePath, PATHINFO_EXTENSION);
 $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
 
+
+// Initialize variables with null/default values
+$base64Image2 = null;
+
+try {
+    // Check if the photo exists and path is valid
+    if ($application->photograph && $application->photograph->photoPath) {
+        $imagePath2 = storage_path('app/public/' . ltrim($application->photograph->photoPath, '/'));
+        
+        // Verify file exists and is readable
+        if (file_exists($imagePath2) && is_readable($imagePath2)) {
+            $imageData2 = file_get_contents($imagePath2);
+            
+            if ($imageData2 !== false) {
+                $imageType2 = strtolower(pathinfo($imagePath2, PATHINFO_EXTENSION));
+                // Validate the image type
+                if (in_array($imageType2, ['jpg', 'jpeg', 'png', 'gif'])) {
+                    $base64Image2 = 'data:image/' . $imageType2 . ';base64,' . base64_encode($imageData2);
+                }
+            }
+        }
+    }
+} catch (Exception $e) {
+    // Log the error if needed
+    // Log::error("Error processing image: " . $e->getMessage());
+    $base64Image2 = null;
+}
         // Prepare data for the PDF
         $data = [
             'logo' => $base64Image,
@@ -56,12 +83,12 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
             'maritalStatus' => $application->maritalStatus,
             'dateOfBirth' => $application->dateOfBirth,
             'olevelResults' => $application->olevelresults,
-            'photoPath' => $application->photoPath ? Storage::url($application->photoPath) : null,
+            'photoPath' => $application->photograph ? Storage::url($application->photograph->photoPath) : null,
             'batchId' => $application->batch_relation ? $application->batch_relation->batchId : 'N/A',
             'batchName' => $application->batch_relation ? $application->batch_relation->batchName : 'N/A',
             'examDate' => $application->batch_relation ? $application->batch_relation->examDate : 'N/A',
             'examTime' => $application->batch_relation ? $application->batch_relation->examTime : 'N/A',
-            // 'qrCode' => $qrCode,
+            'passport' => $base64Image2,
         ];
 
         // Load the Blade view and generate PDF
