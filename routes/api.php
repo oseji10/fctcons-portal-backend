@@ -68,6 +68,7 @@ use App\Http\Controllers\PDFController;
     Route::post('/apply', [ApplicationController::class, 'apply']);
     Route::get('/applications', [ApplicationController::class, 'index']);
     Route::get('/application/status/{email}', [ApplicationController::class, 'status']);
+    Route::get('/my-slips', [ApplicationController::class, 'mySlips']);
 
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
@@ -84,6 +85,7 @@ use App\Http\Controllers\PDFController;
     })->name('verify.slip');
 
 });
+
 Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);
         Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBeneficiaries']);
 

@@ -25,6 +25,8 @@ class ApplicationController extends Controller
     }
 
 
+
+
      public function store(Request $request)
     {
        $validated = $request->validate([
@@ -261,4 +263,17 @@ public function status(Request $request, $email){
     $status = Applications::where('userId', $user->id)->with('payments')->first();
     return response()->json($status);
 }
+
+
+// My Exam Slips
+ public function mySlips(Request $request)
+    {
+        $loggedInUser = auth()->user()->id;
+        // $findUser = User::where('id', $loggedInUser)->first();
+        $application = Applications::with('users')->where('userId', $loggedInUser)->first();
+        if (!$application) {
+            return response()->json(['message' => 'Application not found'], 404);
+        }
+        return response()->json($application);
+    }
 }

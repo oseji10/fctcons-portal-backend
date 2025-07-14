@@ -102,3 +102,7 @@
 #40 C:\\Users\\USER\\Documents\\MyApps\\CONS\\portal\\cons-portal-backend2\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Users\\\\USER\\\\D...')
 #41 {main}
 "} 
+[2025-07-14 23:34:58] local.WARNING: No access_token cookie found  
+[2025-07-14 23:34:58] local.WARNING: No access_token cookie found  
+[2025-07-14 23:50:59] local.WARNING: No access_token cookie found  
+[2025-07-14 23:50:59] local.WARNING: No access_token cookie found  
