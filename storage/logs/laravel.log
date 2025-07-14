@@ -1,0 +1,14 @@
+[2025-07-14 16:39:41] local.ERROR: Registration failed: Undefined array key "jambId"  
+[2025-07-14 16:40:23] local.INFO: User created: {"email":"vctroseji22@gmail.com"} 
+[2025-07-14 16:40:24] local.ERROR: Email sending failed: Undefined variable $languageId (View: C:\Users\USER\Documents\MyApps\CONS\portal\cons-portal-backend2\resources\views\emails\welcome-email.blade.php)  
+[2025-07-14 16:40:52] local.ERROR: Registration failed: Undefined array key "jambId"  
+[2025-07-14 16:48:01] local.INFO: User created: {"email":"vctroseji223@gmail.com"} 
+[2025-07-14 16:48:01] local.ERROR: Email sending failed: Undefined variable $languageId (View: C:\Users\USER\Documents\MyApps\CONS\portal\cons-portal-backend2\resources\views\emails\welcome-email.blade.php)  
+[2025-07-14 16:53:10] local.INFO: User created: {"email":"vctroseji2233@gmail.com"} 
+[2025-07-14 16:53:10] local.ERROR: Email sending failed: Undefined variable $languageId (View: C:\Users\USER\Documents\MyApps\CONS\portal\cons-portal-backend2\resources\views\emails\welcome-email.blade.php)  
+[2025-07-14 16:56:10] local.INFO: User created: {"email":"vctroseji22313@gmail.com"} 
+[2025-07-14 16:56:11] local.ERROR: Email sending failed: Undefined variable $languageId (View: C:\Users\USER\Documents\MyApps\CONS\portal\cons-portal-backend2\resources\views\emails\welcome-email.blade.php)  
+[2025-07-14 17:14:27] local.WARNING: No access_token cookie found  
+[2025-07-14 17:14:27] local.WARNING: No access_token cookie found  
+[2025-07-14 21:15:50] local.WARNING: No access_token cookie found  
+[2025-07-14 21:15:50] local.WARNING: No access_token cookie found  
