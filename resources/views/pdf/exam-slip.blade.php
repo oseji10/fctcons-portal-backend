@@ -189,7 +189,7 @@
 
 
             <h1>FCT College of Nursing Sciences</h1>
-            <h2>2025 Application Exam Slip</h2>
+            <h2>2025 Application Examination Slip</h2>
             <div class="photo-placeholder">
                 <!-- @if(file_exists(public_path($photoPath)))
 @php
