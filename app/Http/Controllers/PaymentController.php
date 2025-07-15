@@ -19,10 +19,10 @@ class PaymentController extends Controller
     {
         try {
             // Log authentication details for debugging
-            Log::info('Initiate payment request received', [
-                'headers' => $request->headers->all(),
-                'cookies' => $request->cookies->all(),
-            ]);
+            // Log::info('Initiate payment request received', [
+            //     'headers' => $request->headers->all(),
+            //     'cookies' => $request->cookies->all(),
+            // ]);
 
             // Validate request
             $request->validate([
@@ -116,12 +116,12 @@ class PaymentController extends Controller
                     'rrr' => $responseData['RRR'],
                     'amount' => $amount,
                     'orderId' => $orderId,
-                    'status' => 'pending',
+                    'status' => 'payment_pending',
                     'response' => json_encode($responseData),
                 ]);
                 
                 // Update application status
-                $application->update(['status' => 'pending_payment']);
+                $application->update(['status' => 'payment_pending']);
                 
                 // Return payment details
                 // Construct correct payment URL
@@ -209,12 +209,12 @@ class PaymentController extends Controller
 
         if ($response->successful() && isset($responseData['status']) && $responseData['status'] === '00') {
             $payment->update([
-                'status' => 'paid',
+                'status' => 'payment_completed',
                 'channel' => $responseData['channel'] ?? null,
                 'paymentDate' => now(),
             ]);
     $applicant = Applications::where('applicationId', $applicationId)->first(); // or Application::...
-     $payment->update(['status' => 'paid']);
+     $applicant->update(['status' => 'payment_completed']);
     $this->assignBatchToCandidate($applicant);
     BatchAssignment::updateOrCreate(
     [
@@ -297,5 +297,20 @@ $batch = $applicant->batch->batchId;
 
 }
 
-
+// My Payments
+ public function myPayments(Request $request)
+    {
+        $loggedInUser = auth()->user()->id;
+        $payments = Payment::
+        // with('users')
+        where('userId', $loggedInUser)
+        // ->where('status', 'payment_completed')
+        ->first();
+        if (!$payments) {
+            return response()->json(['message' => 'No RRR generated'], 404);
+        }
+        return response()->json($payments);
+    }
 }
+
+

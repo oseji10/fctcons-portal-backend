@@ -250,7 +250,7 @@ public function candidateRegister(Request $request)
                 'applicationId' => $applicationId,
                 'applicationType' => $validated['applicationType'],
                 'jambId' => $validated['jambId'] ?? null,
-                'status' => 'not submitted'
+                'status' => 'not_submitted'
             ]);
 
             Log::info('User created:', ['email' => $user->email]);

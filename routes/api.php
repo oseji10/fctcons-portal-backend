@@ -69,9 +69,12 @@ use App\Http\Controllers\PDFController;
     Route::get('/applications', [ApplicationController::class, 'index']);
     Route::get('/application/status/{email}', [ApplicationController::class, 'status']);
     Route::get('/my-slips', [ApplicationController::class, 'mySlips']);
+    Route::get('/application/status', [ApplicationController::class, 'applicationStatus']);
 
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
+    Route::get('/my-payments', [PaymentController::class, 'myPayments']);
+
 
     Route::get('/batches', [BatchController::class, 'index']);
     Route::post('/batches', [BatchController::class, 'store']);

@@ -11,4 +11,9 @@ class Payment extends Model
     protected $fillable = [
         'applicationId', 'userId', 'rrr', 'amount', 'orderId', 'status', 'response', 'channel', 'paymentDate'
     ];
+
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'userId', 'id'); 
+    }
 }

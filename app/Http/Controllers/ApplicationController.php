@@ -269,10 +269,25 @@ public function status(Request $request, $email){
  public function mySlips(Request $request)
     {
         $loggedInUser = auth()->user()->id;
-        // $findUser = User::where('id', $loggedInUser)->first();
-        $application = Applications::with('users')->where('userId', $loggedInUser)->first();
+        $application = Applications::with('users')
+        ->where('userId', $loggedInUser)
+        ->where('status', 'payment_completed')
+        ->first();
         if (!$application) {
-            return response()->json(['message' => 'Application not found'], 404);
+            return response()->json(['message' => 'Payment not made'], 404);
+        }
+        return response()->json($application);
+    }
+
+// Application Status
+    public function applicationStatus(Request $request)
+    {
+        $loggedInUser = auth()->user()->id;
+        $application = Applications::where('userId', $loggedInUser)
+        // ->where('status', 'payment_completed')
+        ->first();
+        if (!$application) {
+            return response()->json(['message' => 'Application not made'], 404);
         }
         return response()->json($application);
     }
