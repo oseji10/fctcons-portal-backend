@@ -213,56 +213,7 @@ class ApplicationController extends Controller
 
 
 
-    // Payment controller method
-    public function initiateRemitaPayment(Request $request)
-{
-    $orderId = Str::uuid()->toString(); // unique
-    // $amount = $request->amount;
-    // $payerName = $request->name;
-    // $payerEmail = $request->email;
-    // $payerPhone = $request->phone;
 
-    $amount = 5000;
-    $payerName = "Victor Oseji";
-    $payerEmail = "vctroseji@gmail.com";
-    $payerPhone = "08137054875";
-
-    $hash = generateRemitaHash($orderId, $amount);
-
-    $payload = [
-        'serviceTypeId' => config('remita.service_type_id'),
-        'amount' => $amount,
-        'orderId' => $orderId,
-        'payerName' => $payerName,
-        'payerEmail' => $payerEmail,
-        'payerPhone' => $payerPhone,
-    ];
-
-    $response = Http::withHeaders([
-        'Content-Type' => 'application/json',
-        'Authorization' => 'remitaConsumerKey=' . config('remita.merchant_id') . ',remitaConsumerToken=' . $hash,
-    ])->post(config('remita.base_url'), $payload);
-
-    $res = $response->json();
-
-    if (isset($res['RRR'])) {
-        return response()->json([
-            'status' => 'success',
-            'rrr' => $res['RRR'],
-            'payment_url' => "https://login.remita.net/remita/ecomm/finalize.reg?rrr={$res['RRR']}&merchantId=" . config('remita.merchant_id')
-        ]);
-    } else {
-        return response()->json(['status' => 'error', 'message' => $res]);
-    }
-}
-   
-
-// Application current stats
-public function status(Request $request, $email){
-    $user = User::where('email', $email)->first();
-    $status = Applications::where('userId', $user->id)->with('payments')->first();
-    return response()->json($status);
-}
 
 
 // My Exam Slips

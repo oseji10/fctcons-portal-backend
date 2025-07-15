@@ -61,15 +61,23 @@ class PaymentController extends Controller
                 ], 500);
             }
 
-            $payload = [
-                'serviceTypeId' => $serviceTypeId,
-                'amount' => $amount,
-                'orderId' => $orderId,
-                'payerName' => $user->firstName . ' ' . ($user->lastName ?? ''),
-                'payerEmail' => $user->email,
-                'payerPhone' => $user->phoneNumber ?? 'N/A',
-                'description' => 'Registration Fee',
-            ];
+    $payload = [
+    'serviceTypeId' => $serviceTypeId,
+    'amount' => $amount,
+    'orderId' => $orderId,
+    'payerName' => $user->firstName . ' ' . $user->lastName ?? ' ' . $user->otherNames ?? '',
+    'payerEmail' => $user->email,
+    'payerPhone' => $user->phoneNumber ?? 'N/A',
+    'description' => 'Application Fee - ' . $application->applicationId,
+    'customFields' => [
+        [
+            'applicationId' => $application->applicationId ?? '',
+            'JAMB ID' => $application->jambId ?? '',
+            'Application Type' => $application->application_type->typeName ?? '',
+        ]
+    ]
+];
+
 
             // Generate hash
             $concatString = $merchantId . $serviceTypeId . $orderId . $amount . $apiKey;
