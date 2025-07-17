@@ -9,12 +9,41 @@ use App\Models\Applications;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Batch;
-use App\Models\BatchAssignment;
+use App\Models\BatchedCandidates;
 use App\Models\PaymentSetting;
 use Illuminate\Support\Str;
 use DB;
 class PaymentController extends Controller
 {
+      public function index(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    
+    $status = $request->query('status');
+    $search = $request->query('search');
+    
+    $query = Payment::with(['users'])->orderBy('id', 'desc');
+    
+    if ($status) {
+        $query->where('status', $status);
+    }
+    
+   if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('applicationId', 'like', "%$search%")
+              ->orWhere('jambId', 'like', "%$search%");
+        })->orWhereHas('users', function($q) use ($search) {
+            $q->where('firstName', 'like', "%$search%")
+              ->orWhere('lastName', 'like', "%$search%")
+              ->orWhere('otherNames', 'like', "%$search%");
+        });
+    }
+    
+    $payments = $query->paginate($perPage);
+    
+    return response()->json($payments);
+}
+
     public function initiatePayment(Request $request)
     {
         try {
@@ -224,7 +253,7 @@ class PaymentController extends Controller
     $applicant = Applications::where('applicationId', $applicationId)->first(); // or Application::...
      $applicant->update(['status' => 'payment_completed']);
     $this->assignBatchToCandidate($applicant);
-    BatchAssignment::updateOrCreate(
+    BatchCandidates::updateOrCreate(
     [
         'applicationId' => $applicant->applicationId,
         // 'batchId' => $applicant->batch,
@@ -297,10 +326,9 @@ DB::transaction(function () use ($applicant) {
 public function logBatchInfo (Applications $applicant) {
 // ✅ Log assignment
 $batch = $applicant->batch->batchId;
-            BatchAssignment::create([
+            BatchedCandidates::create([
                 'applicationId' => $applicant->applicationId,
                 'batchId' => $batch->batchId,
-                'assigned_at' => now(),
             ]);
 
 }
@@ -318,6 +346,13 @@ $batch = $applicant->batch->batchId;
             return response()->json(['message' => 'No RRR generated'], 404);
         }
         return response()->json($payments);
+    }
+
+
+    // All Payments
+    public function all_payments(){
+        $all_payments = Payment::with('users')->limit('10')->get();
+        return response()->json($all_payments);
     }
 }
 

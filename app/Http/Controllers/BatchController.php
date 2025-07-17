@@ -6,23 +6,30 @@ use Illuminate\Http\Request;
 use App\Models\Batch;
 class BatchController extends Controller
 {
-    public function index(Request $request)
+    public function batches(Request $request)
     {
-    
-
-        $perPage = $request->query('per_page', 10);
-        $batches = Batch::orderBy('id', 'desc')->paginate($perPage);
+        $batches = Batch::orderBy('id', 'desc')->get();
         return response()->json($batches);
     }
 
-    public function show($cadreId)
-    {
-        $cadre = Cadre::find($cadreId);
-        if (!$cadre) {
-            return response()->json(['message' => 'Cadre not found'], 404);
-        }
-        return response()->json($cadre);
+  public function index(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    $search = $request->query('search');
+    
+    $query = Batch::orderBy('id', 'desc');
+        
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('batchName', 'like', "%$search%")
+              ->orWhere('batchId', 'like', "%$search%");
+        });
     }
+    
+    $jambs = $query->paginate($perPage);
+    
+    return response()->json($jambs);
+}
 
     public function store(Request $request)
     {
@@ -36,33 +43,34 @@ class BatchController extends Controller
         return response()->json($batch, 201); // HTTP status code 201: Created
     }
 
-    public function update(Request $request, $cadreId)
+    public function update(Request $request, $batchId)
     {
-        $cadre = Cadre::find($cadreId);
-        if (!$cadre) {
-            return response()->json(['message' => 'Cadre not found'], 404);
+        $batch = Batch::find($batchId);
+        if (!$batch) {
+            return response()->json(['message' => 'Batch not found'], 404);
         }
 
         $data = $request->all();
-        $cadre->update($data);
+        $batch->update($data);
 
         return response()->json([
-            'message' => 'Cadre updated successfully',
-            'cadreId' => $cadre->cadreId,
-            'cadreName' => $cadre->cadreName,
-            'salary' => $cadre->salary
+            'message' => 'Batch updated successfully',
+            'batchId' => $batch->batchId,
+            'batchName' => $batch->batchName,
+            'examDate' => $batch->examDate,
+            'examTime' => $batch->examTime
         ], 200); // HTTP status code 200: OK
     }
 
-    public function destroy($cadreId)
+    public function destroy($batchId)
     {
-        $cadre = Cadre::find($cadreId);
-        if (!$cadre) {
-            return response()->json(['message' => 'Cadre not found'], 404);
+        $batch = Batch::find($batchId);
+        if (!$batch) {
+            return response()->json(['message' => 'Batch not found'], 404);
         }
 
-        $cadre->delete();
-        return response()->json(['message' => 'Cadre deleted successfully'], 200); // HTTP status code 200: OK
+        $batch->delete();
+        return response()->json(['message' => 'Batch deleted successfully'], 200); // HTTP status code 200: OK
     }
   
 

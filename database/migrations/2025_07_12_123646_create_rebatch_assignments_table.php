@@ -11,14 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('batched_candidates', function (Blueprint $table) {
+    Schema::create('rebatched_candidates', function (Blueprint $table) {
     $table->id();
-    $table->string('applicationId');
-    $table->string('batchId');
+    $table->string('applicationId')->nullable();
+    $table->string('oldBatchId')->nullable();
+    $table->string('newBatchId')->nullable();
+    $table->unsignedBigInteger('rebatchedBy')->nullable();
     $table->timestamps();
 
     $table->foreign('applicationId')->references('applicationId')->on('applications')->onDelete('cascade');
-    $table->foreign('batchId')->references('batchId')->on('batches')->onDelete('cascade');
+    $table->foreign('oldBatchId')->references('batchId')->on('batches')->onDelete('cascade');
+    $table->foreign('newBatchId')->references('batchId')->on('batches')->onDelete('cascade');
+    $table->foreign('rebatchedBy')->references('id')->on('users')->onDelete('cascade');
 });
 
     }

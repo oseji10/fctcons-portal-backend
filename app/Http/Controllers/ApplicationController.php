@@ -10,11 +10,13 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Photo;
 use App\Models\OlevelResult;
 use App\Models\User;
-
+use App\Models\Payment;
+use App\Models\BatchedCandidates;
+use App\Models\ReBatchedCandidates;
 
 class ApplicationController extends Controller
 {
-    public function index()
+    public function index2()
     {
         // This method should return a list of applicants
         $applications = Applications::with(['users'])->get();
@@ -25,7 +27,38 @@ class ApplicationController extends Controller
     }
 
 
+   public function index(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    $batch = $request->query('batch');
+    $status = $request->query('status');
+    $search = $request->query('search');
+    
+    $query = Applications::with(['users'])->orderBy('id', 'desc');
+    
+    if ($batch) {
+        $query->where('batch', $batch);
+    }
 
+    if ($status) {
+        $query->where('status', $status);
+    }
+    
+   if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('applicationId', 'like', "%$search%")
+              ->orWhere('jambId', 'like', "%$search%");
+        })->orWhereHas('users', function($q) use ($search) {
+            $q->where('firstName', 'like', "%$search%")
+              ->orWhere('lastName', 'like', "%$search%")
+              ->orWhere('otherNames', 'like', "%$search%");
+        });
+    }
+    
+    $applications = $query->paginate($perPage);
+    
+    return response()->json($applications);
+}
 
      public function store(Request $request)
     {
@@ -71,7 +104,7 @@ class ApplicationController extends Controller
                 'gender' => 'required|string|in:Male,Female,Other',
                 'dateOfBirth' => 'required|date',
                 'maritalStatus' => 'nullable|string|in:Single,Married,Divorced,Widowed',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Max 2MB
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // Max 2MB
             ]);
 
             // Validate olevelResults separately since it may have been decoded
@@ -242,4 +275,127 @@ class ApplicationController extends Controller
         }
         return response()->json($application);
     }
+
+
+    // Analytics
+ public function analytics(){
+    $signed_up = Applications::where('status', '=', 'not_submitted')->count();
+    $payment_pending = Applications::where('status', '=', 'payment_pending')->count();
+    $payment_completed = Applications::where('status', '=', 'payment_completed')->count();
+    $sum_payments = Payment::sum('amount');
+    $batched_candidates = BatchedCandidates::count();
+    $rebatched_candidates = ReBatchedCandidates::count();
+
+    return response()->json([
+        'signed_up' => $signed_up,
+        'payment_pending' => $payment_pending,
+        'payment_completed' => $payment_completed,
+        'total' => $sum_payments,
+        'batched_candidates' => $batched_candidates,
+        'rebatched_candidates' => $rebatched_candidates,
+    ]);
+ }
+
+
+ public function changeBatch(Request $request, Applications $applicationId)
+{
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'batch' => 'required|string|exists:batches,batchId',
+        // 'applicationId' => 'required|string|exists:applications,applicationId' // assuming you have a batches table
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    try {
+        // Check if the batch exists and is active
+        $batch = \App\Models\Batch::where('batchId', $request->batch)
+                    ->where('status', 'active')
+                    ->first();
+
+        if (!$batch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected batch is not available or inactive'
+            ], 400);
+        }
+
+        // Check batch capacity
+        $currentCount = Applications::where('batch', $request->batch)->count();
+        if ($currentCount >= $batch->capacity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected batch has reached maximum capacity'
+            ], 400);
+        }
+
+        // Update the application
+        $application = Applications::where('applicationId', $applicationId->applicationId)->first();
+        $candidate_batch = BatchedCandidates::where('applicationId', $applicationId->applicationId)->first();
+
+
+        if (!$application) {
+        return response()->json([
+        'success' => false,
+        'message' => 'Applicant not found'
+        ], 404);
+        }
+
+        $application->update(['batch' => $request->batch]);
+        $candidate_batch->update(['batchId' => $request->batch]);
+        ReBatchedCandidates::create([
+        'applicationId' => $application->applicationId,
+        'oldBatchId' => $candidate_batch->batchId,
+        'newBatchId' => $request->batch,
+        'rebatchedBy' => auth()->user()->id,
+        ]);
+
+//         $perPage = $request->query('per_page', 10);
+// $query = Applications::with(['users'])->orderBy('id', 'desc');
+// $applications = $query->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Batch changed successfully',
+            'data' => $applications
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to change batch',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+// REBACTHED CANDIDATES
+public function rebatched_candidates(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    $search = $request->query('search');
+    
+    $query = ReBatchedCandidates::with(['applicant.users'])->orderBy('id', 'desc');
+
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('applicationId', 'like', "%$search%");
+        })->orWhereHas('applicant.users', function($q) use ($search) {
+            $q->where('firstName', 'like', "%$search%")
+            ->orWhere('jambId', 'like', "%$search%")
+              ->orWhere('lastName', 'like', "%$search%")
+              ->orWhere('otherNames', 'like', "%$search%");
+        });
+    }
+
+    $rebatched = $query->paginate($perPage);
+
+    return response()->json($rebatched);
+}
 }
