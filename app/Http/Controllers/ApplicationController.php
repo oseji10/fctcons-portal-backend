@@ -112,7 +112,7 @@ class ApplicationController extends Controller
             $request->validate([
                 'olevelResults' => 'required|array|min:1',
                 'olevelResults.*.subject' => 'required|string|max:255',
-                'olevelResults.*.grade' => 'required|string|in:A1,B2,B3,C4,C5,C6',
+                'olevelResults.*.grade' => 'required|string|in:A1,B2,B3,C4,C5,C6,D7,E8,F9',
                 'olevelResults.*.examType' => 'required|string|in:WAEC,NECO,NABTEB',
                 'olevelResults.*.examYear' => 'required|integer|min:1980|max:' . date('Y'),
             ]);

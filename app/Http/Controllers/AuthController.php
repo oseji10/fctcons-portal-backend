@@ -209,16 +209,22 @@ public function candidateRegister(Request $request)
     {
         try {
             // Validate request data
-            $validated = $request->validate([
-                'firstName' => 'required|string|max:255',
-                'lastName' => 'required|string|max:255',
-                'phoneNumber' => 'nullable|string|max:14|regex:/^\+?\d{10,15}$/',
-                'otherNames' => 'nullable|string|max:255',
-                'email' => 'required|email|unique:users,email|max:255',
-                'password' => 'required|string|min:6',
-                'applicationType' => 'required|string|exists:application_types,typeId',
-                'jambId' => 'nullable|string|unique:users,jambId|max:255',
-            ]);
+           $messages = [
+            'email.unique' => 'The email address is already in use.',
+            'jambId.unique' => 'The JAMB ID is already in use.',
+        ];
+
+        // Validate request data with custom messages
+        $validated = $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'phoneNumber' => 'nullable|string|max:14|regex:/^\+?\d{10,15}$/',
+            'otherNames' => 'nullable|string|max:255',
+            'email' => 'required|email|unique:users,email|max:255',
+            'password' => 'required|string|min:6',
+            'applicationType' => 'required|string|exists:application_types,typeId',
+            'jambId' => 'nullable|string|unique:users,jambId|max:255',
+        ], $messages);
 
             // Generate applicationId based on applicationType
             $prefix = match ($validated['applicationType']) {
