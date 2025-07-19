@@ -25,6 +25,8 @@ class Applications extends Model
         'batch',
         'isPresent',
         'status',
+        'hall',
+        'seatNumber',
     ];
     protected $primaryKey = 'applicationId';
     public $incrementing = false;
@@ -64,5 +66,10 @@ class Applications extends Model
       public function photograph()
     {
         return $this->belongsTo(Photo::class, 'applicationId', 'applicationId');
+    } 
+
+    public function hall_info()
+    {
+        return $this->belongsTo(Halls::class, 'hall', 'hallId');
     } 
 }

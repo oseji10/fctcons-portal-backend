@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('slipPrintCount')->default('0');
             $table->string('admissionPrintCount')->default('0');
             $table->string('isPresent')->default('false');
+            $table->string('hall')->nullable();
+            $table->string('seat')->nullable();
             $table->string('status')->default('account_created');
 
             $table->timestamps();

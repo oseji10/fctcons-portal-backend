@@ -21,6 +21,8 @@ use App\Http\Controllers\JAMBController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\VerificationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -75,12 +77,14 @@ use App\Http\Controllers\PDFController;
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
     Route::get('/my-payments', [PaymentController::class, 'myPayments']);
+    Route::get('/payments', [PaymentController::class, 'index']);
     
     Route::get('/all-batches', [BatchController::class, 'batches']);
     Route::get('/batches', [BatchController::class, 'index']);
     Route::post('/batches', [BatchController::class, 'store']);
     Route::put('/batches/{batchId}', [BatchController::class, 'update']);
     Route::delete('/batches/{batchId}', [BatchController::class, 'destroy']);
+    Route::get('/rebatched', [ApplicationController::class, 'rebatched_candidates']);
     
     Route::get('/batched-applicants', function () {
         return \App\Models\BatchAssignment::with('applicants')->latest()->paginate(20);
@@ -92,9 +96,10 @@ use App\Http\Controllers\PDFController;
     
     Route::get('/all-payments', [PaymentController::class, 'all_payments']);
     Route::get('/analytics', [ApplicationController::class, 'analytics']);
+    
+    Route::get('/applicant/verify/{identifier}', [VerificationController::class, 'verifyCandidate']);
+    Route::post('/applicant/mark-present', [VerificationController::class, 'markPresent']);
 });
-Route::get('/payments', [PaymentController::class, 'index']);
-Route::get('/rebatched', [ApplicationController::class, 'rebatched_candidates']);
 
 
 Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);

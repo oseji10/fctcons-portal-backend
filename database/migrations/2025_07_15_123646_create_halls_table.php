@@ -13,11 +13,17 @@ return new class extends Migration
     {
     Schema::create('halls', function (Blueprint $table) {
     $table->id();
-    $table->string('hallId')->nullable();
+    $table->string('hallId')->unique();
     $table->string('hallName')->nullable();
     $table->string('capacity')->nullable();
     $table->timestamps();
 });
+
+Schema::table('applications', function (Blueprint $table) {
+            $table->string('hall')->nullable();
+            $table->string('seatNumber')->nullable();
+            $table->foreign('hall')->references('hallId')->on('halls')->onDelete('cascade');
+        });
 
     }
 
