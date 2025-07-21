@@ -17,6 +17,7 @@ class Batch extends Model
         'examTime',
         'capacity',
         'status',
+        'isVerificationActive',
     ];
     // protected $primaryKey = 'id';
 

@@ -11,6 +11,7 @@ class Halls extends Model
         'hallId',
         'hallName',
         'capacity',
+        'isActive',
     ];
     
 }

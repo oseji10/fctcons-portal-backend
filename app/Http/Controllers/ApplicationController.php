@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Photo;
 use App\Models\OlevelResult;
 use App\Models\User;
+use App\Models\Batch;
+use App\Models\Halls;
 use App\Models\Payment;
 use App\Models\BatchedCandidates;
 use App\Models\ReBatchedCandidates;
+use App\Models\ReBatchedCandidatesHistory;
+use PDF;
 
 class ApplicationController extends Controller
 {
@@ -302,7 +306,6 @@ class ApplicationController extends Controller
     // Validate the request
     $validator = Validator::make($request->all(), [
         'batch' => 'required|string|exists:batches,batchId',
-        // 'applicationId' => 'required|string|exists:applications,applicationId' // assuming you have a batches table
     ]);
 
     if ($validator->fails()) {
@@ -335,35 +338,46 @@ class ApplicationController extends Controller
             ], 400);
         }
 
-        // Update the application
+        // Get the application and current batch
         $application = Applications::where('applicationId', $applicationId->applicationId)->first();
         $candidate_batch = BatchedCandidates::where('applicationId', $applicationId->applicationId)->first();
 
-
-        if (!$application) {
-        return response()->json([
-        'success' => false,
-        'message' => 'Applicant not found'
-        ], 404);
+        if (!$application || !$candidate_batch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Applicant or batch information not found'
+            ], 404);
         }
 
-        $application->update(['batch' => $request->batch]);
-        $candidate_batch->update(['batchId' => $request->batch]);
-        ReBatchedCandidates::create([
-        'applicationId' => $application->applicationId,
-        'oldBatchId' => $candidate_batch->batchId,
-        'newBatchId' => $request->batch,
-        'rebatchedBy' => auth()->user()->id,
+        // Store the old batch ID before making any changes
+        $oldBatchId = $candidate_batch->batchId;
+        $newBatchId = $request->batch;
+
+        // Update the application and batch
+        $application->update(['batch' => $newBatchId]);
+        $candidate_batch->update(['batchId' => $newBatchId]);
+
+        // Create the re-batch record with the correct old and new values
+        ReBatchedCandidatesHistory::create([
+            'applicationId' => $application->applicationId,
+            'oldBatchId' => $oldBatchId, // Use the stored old value
+            'newBatchId' => $newBatchId,  // Use the new value from the request
+            'rebatchedBy' => auth()->user()->id,
         ]);
 
-//         $perPage = $request->query('per_page', 10);
-// $query = Applications::with(['users'])->orderBy('id', 'desc');
-// $applications = $query->paginate($perPage);
-
+        // This would keep just one record per application, updating it on each change
+ReBatchedCandidates::updateOrCreate(
+    ['applicationId' => $application->applicationId], // Match condition
+    [
+        'oldBatchId' => $oldBatchId,
+        'newBatchId' => $newBatchId,
+        'rebatchedBy' => auth()->user()->id,
+    ]
+);
         return response()->json([
             'success' => true,
             'message' => 'Batch changed successfully',
-            'data' => $applications
+            'data' => $application
         ]);
 
     } catch (\Exception $e) {
@@ -381,7 +395,7 @@ public function rebatched_candidates(Request $request)
     $perPage = $request->query('per_page', 10);
     $search = $request->query('search');
     
-    $query = ReBatchedCandidates::with(['applicant.users'])->orderBy('id', 'desc');
+    $query = ReBatchedCandidates::with(['applicant.users', 'rebatched_by'])->orderBy('id', 'desc');
 
     if ($search) {
         $query->where(function($q) use ($search) {
@@ -398,4 +412,74 @@ public function rebatched_candidates(Request $request)
 
     return response()->json($rebatched);
 }
+
+// ATTENDANCE
+ public function attendance(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    $batch = $request->query('batch');
+    $hall = $request->query('hall');
+    
+    $query = Applications::with(['users'])->orderBy('id', 'desc');
+    
+    if ($batch) {
+        $query->where('batch', $batch);
+    }
+
+    if ($hall) {
+        $query->where('hall', $hall);
+    }
+    
+  
+    
+    $attendance = $query->paginate($perPage);
+    
+    return response()->json($attendance);
+}
+
+
+public function printAttendance(Request $request)
+{
+        $imagePath = storage_path('app/public/images/cons_logo.png');
+        $imageData = base64_encode(file_get_contents($imagePath));
+        $imageType = pathinfo($imagePath, PATHINFO_EXTENSION);
+        $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
+        
+        $validated = $request->validate([
+            'batch' => 'required|string',
+            'hall' => 'required|string',
+        ]);
+
+        $batch = $request->batch;
+        $hall = $request->hall;
+
+        // Get attendance records with user information
+        $records = Applications::with('users')
+            ->where('batch', $batch)
+            ->where('hall', $hall)
+            ->orderBy('seatNumber')
+            ->get();
+
+        // Get batch and hall details (you may need to adjust based on your models)
+        $batchDetails = Batch::where('batchId', $batch)->first();
+        $hallDetails = Halls::where('hallId', $hall)->first();
+
+        $data = [
+            'logo' => $base64Image,
+            'records' => $records,
+            'batch' => $batchDetails,
+            'hall' => $hallDetails,
+            'date' => now()->format('F j, Y'),
+        ];
+
+        $pdf = PDF::loadView('pdf.attendance', $data)
+            ->setPaper('a4', 'landscape')
+            ->setOption('margin-top', 10)
+            ->setOption('margin-bottom', 10)
+            ->setOption('margin-left', 10)
+            ->setOption('margin-right', 10);
+
+        return $pdf->stream("attendance_{$batch}_{$hall}.pdf");
+    }
+
 }

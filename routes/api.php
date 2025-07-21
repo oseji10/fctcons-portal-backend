@@ -22,6 +22,8 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\HallController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -73,7 +75,9 @@ use App\Http\Controllers\VerificationController;
     Route::get('/my-slips', [ApplicationController::class, 'mySlips']);
     Route::get('/application/status', [ApplicationController::class, 'applicationStatus']);
     Route::put('/application/{applicationId}/change-batch', [ApplicationController::class, 'changeBatch']);
-    
+    Route::get('/attendance', [ApplicationController::class, 'attendance']);
+    Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');
+
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
     Route::get('/my-payments', [PaymentController::class, 'myPayments']);
@@ -85,7 +89,15 @@ use App\Http\Controllers\VerificationController;
     Route::put('/batches/{batchId}', [BatchController::class, 'update']);
     Route::delete('/batches/{batchId}', [BatchController::class, 'destroy']);
     Route::get('/rebatched', [ApplicationController::class, 'rebatched_candidates']);
+    Route::patch('/batches/{batchId}/verification', [BatchController::class, 'changeStatus']);
     
+     Route::get('/halls', [HallController::class, 'index']);
+     Route::get('/all-halls', [HallController::class, 'halls']);
+    Route::post('/halls', [HallController::class, 'store']);
+    Route::put('/halls/{hallId}', [HallController::class, 'update']);
+    Route::patch('/halls/{hallId}/status', [HallController::class, 'changeStatus']);
+    Route::delete('/halls/{hallId}', [HallController::class, 'destroy']);
+
     Route::get('/batched-applicants', function () {
         return \App\Models\BatchAssignment::with('applicants')->latest()->paginate(20);
     });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Batch;
+use DB;
 class BatchController extends Controller
 {
     public function batches(Request $request)
@@ -61,6 +62,47 @@ class BatchController extends Controller
             'examTime' => $batch->examTime
         ], 200); // HTTP status code 200: OK
     }
+
+
+public function changeStatus(Request $request, $batchId)
+{
+    $batch = Batch::where('batchId', $batchId)->first();
+    if (!$batch) {
+        return response()->json(['message' => 'Batch not found'], 404);
+    }
+
+    $status = $request->isVerificationActive;
+    
+    // Start a database transaction
+    DB::beginTransaction();
+    
+    try {
+        // If we're activating verification for this batch, deactivate all others
+        if ($status) {
+            Batch::where('batchId', '!=', $batchId)
+                 ->update(['isVerificationActive' => 0]);
+        }
+        
+        // Update the current batch
+        $batch->update(['isVerificationActive' => $status ? 1 : 0]);
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Batch verification status updated successfully',
+            'batchId' => $batch->batchId,
+            'batchName' => $batch->batchName,
+            'isVerificationActive' => $batch->isVerificationActive,
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'message' => 'Failed to update verification status',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 
     public function destroy($batchId)
     {

@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ReBatchedCandidates extends Model
+class ReBatchedCandidatesHistory extends Model
 {
-    public $table = 'rebatched_candidates';
+    public $table = 'rebatched_candidates_history';
     protected $fillable = ['applicationId', 'oldBatchId', 'newBatchId', 'rebatchedBy'];
     public $timestamps = true;
 
