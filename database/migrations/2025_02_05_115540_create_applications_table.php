@@ -19,8 +19,8 @@ return new class extends Migration
             // $table->string('lastName')->nullable();
             $table->string('dateOfBirth')->nullable();
             $table->string('gender')->nullable();
+            $table->string('maritalStatus')->nullable();
             $table->string('alternatePhoneNumber')->nullable();
-            // $table->string('email')->nullable();
             $table->string('licenceId')->nullable();
             $table->string('batch')->nullable();
             $table->unsignedBigInteger('applicationType')->nullable();

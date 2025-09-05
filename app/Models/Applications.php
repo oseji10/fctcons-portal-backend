@@ -27,6 +27,7 @@ class Applications extends Model
         'status',
         'hall',
         'seatNumber',
+        'maritalStatus',
     ];
     protected $primaryKey = 'applicationId';
     public $incrementing = false;

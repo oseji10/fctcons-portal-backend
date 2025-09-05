@@ -49,17 +49,49 @@
       font-weight: 500;
     }
 
+    .exam-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .exam-details {
+      flex: 1;
+      background: #f8fbff;
+      border-left: 4px solid #003087;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .exam-details h3 {
+      font-size: 18px;
+      color: #003087;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .exam-details div {
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .exam-details strong {
+      color: #003087;
+    }
+
     .photo-placeholder {
-      position: absolute;
-      top: 40px;
-      right: 40px;
-      width: 120px;
-      height: 120px;
+      width: 140px;
+      height: 160px;
       border: 2px solid #003087;
       border-radius: 10px;
       overflow: hidden;
       background-color: #f9f9f9;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      flex-shrink: 0;
     }
 
     .photo-placeholder img {
@@ -70,10 +102,6 @@
 
     .section {
       margin-bottom: 30px;
-      background: #f8fbff;
-      border-left: 4px solid #003087;
-      padding: 20px;
-      border-radius: 8px;
     }
 
     .section h3 {
@@ -84,11 +112,6 @@
       text-transform: uppercase;
     }
 
-    .section div {
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
     .details-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -96,18 +119,30 @@
     }
 
     .details-grid div {
-      background: #fff;
+      background: #f8fbff;
       padding: 12px 14px;
       border-radius: 6px;
       border: 1px solid #dce6f5;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .details-grid strong {
       color: #003087;
     }
 
-    table.olevel-table {
+    table.candidate-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .candidate-table th {
+      background-color: #003087;
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+
+     table.olevel-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
@@ -132,25 +167,20 @@
       font-size: 13px;
     }
 
-    .qr-code {
-      text-align: center;
-      margin-top: 30px;
+    .signature-section {
+      margin-top: 40px;
+      font-size: 14px;
     }
 
-    .qr-code img {
-      width: 130px;
-      height: 130px;
-      border: 2px solid #003087;
-      border-radius: 10px;
-      padding: 5px;
-      background: #fff;
+    .signature-section div {
+      margin: 12px 0;
     }
 
-    .qr-code p {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #666;
-      font-style: italic;
+    .line {
+      display: inline-block;
+      border-bottom: 1px solid #000;
+      width: 220px;
+      margin-left: 10px;
     }
 
     .footer {
@@ -198,21 +228,41 @@
       <h2>2025 Application Examination Slip</h2>
     </div>
 
-    <div class="photo-placeholder">
-      <img src="{{ $passport }}" alt="Candidate Photo">
-    </div>
+    <table width="100%" style="margin-bottom: 20px;">
+      <tr>
+        <td style="text-align: left; font-size: 14px;">
+            <div class="exam-details">
+        <h3>Examination Details</h3>
+        <div><strong>Application ID:</strong> {{ $applicationId }}</div>
+        <div><strong>JAMB ID:</strong> {{ $jambId ?? 'N/A' }}</div>
+        <div><strong>Batch ID:</strong> {{ $batchId }}</div>
+        <div><strong>Exam Date:</strong> {{ $examDate !== 'N/A' ? \Carbon\Carbon::parse($examDate)->format('l, jS F Y') : 'N/A' }}</div>
+        <div><strong>Exam Time:</strong> {{ $examTime ? \Carbon\Carbon::parse($examTime)->format('h:i A') : 'N/A' }}</div>
+      </div> 
+        </td>
+        <td style="text-align: right; font-size: 14px;">
+             <div class="photo-placeholder">
+        <img src="{{ $passport }}" alt="Candidate Photo">
+      </div>
+        </td>
+      </tr>
+    </table>
+    <!-- <div class="exam-flex">
+      <div class="exam-details">
+        <h3>Examination Details</h3>
+        <div><strong>Application ID:</strong> {{ $applicationId }}</div>
+        <div><strong>JAMB ID:</strong> {{ $jambId ?? 'N/A' }}</div>
+        <div><strong>Batch ID:</strong> {{ $batchId }}</div>
+        <div><strong>Exam Date:</strong> {{ $examDate !== 'N/A' ? \Carbon\Carbon::parse($examDate)->format('l, jS F Y') : 'N/A' }}</div>
+        <div><strong>Exam Time:</strong> {{ $examTime ? \Carbon\Carbon::parse($examTime)->format('h:i A') : 'N/A' }}</div>
+      </div>
 
-    <div class="section">
-      <h3>Examination Details</h3>
-      
-    <div><strong>Application ID:</strong> {{ $applicationId }}</div>
-    <div><strong>JAMB ID:</strong> {{ $jambId ?? 'N/A' }}</div>
-      <div><strong>Batch ID:</strong> {{ $batchId }}</div>
-      <div><strong>Exam Date:</strong> {{ $examDate !== 'N/A' ? \Carbon\Carbon::parse($examDate)->format('l, jS F Y') : 'N/A' }}</div>
-      <div><strong>Exam Time:</strong> {{ $examTime ? \Carbon\Carbon::parse($examTime)->format('h:i A') : 'N/A' }}</div>
-    </div>
+      <div class="photo-placeholder">
+        <img src="{{ $passport }}" alt="Candidate Photo">
+      </div>
+    </div> -->
 
-    <div class="section">
+    <!-- <div class="section">
       <h3>Candidate Information</h3>
       <div class="details-grid">
         <div><strong>Full Name:</strong> {{ $fullname }}</div>
@@ -223,7 +273,39 @@
         <div><strong>Date of Birth:</strong> {{ $dateOfBirth }}</div>
         <div><strong>State of Origin:</strong> {{ $stateOfOrigin ?? 'N/A' }}</div>
       </div>
-    </div>
+    </div> -->
+
+    <table class="candidate-table">
+      <tr>
+          <td colspan="2" style="text-align: left; padding: 10px 0; color: #003087; ">
+            <h3>CANDIDATE INFORMATION</h3>
+          </td>
+        </tr>
+        <tr>
+        <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+          <div class="section">
+            <div class="details-grid">
+              <div><strong>Name:</strong> {{ $fullname ?? 'N/A' }}</div>
+              <div><strong>Email:</strong> {{ $email }}</div>
+              <div><strong>Date of Birth:</strong> {{ $dateOfBirth }}</div>
+              <div><strong>State of Origin:</strong> {{ $stateOfOrigin ?? 'N/A' }}</div>
+            </div>
+          </div>
+        </td>
+
+        <td style="width: 50%; padding-right: 10px; vertical-align: top;">
+          <div class="section">
+            <!-- <h3>Next of Kin</h3> -->
+            <div class="details-grid">
+              
+              <div><strong>Phone:</strong> {{ $phoneNumber }}</div>
+              <div><strong>Gender:</strong> {{ $gender }}</div>
+              <div><strong>Marital Status:</strong> {{ $maritalStatus }}</div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
     <div class="section">
       <h3>O'Level Results</h3>
@@ -249,10 +331,35 @@
       </table>
     </div>
 
-    <!-- <div class="qr-code">
-      <img src="{{ $qrCode }}" alt="QR Code">
-      <p>Scan to verify exam slip</p>
-    </div> -->
+    <div class="signature-section">
+      
+     
+      
+    </div>
+    <table width="100%" style="margin-top: 20px;">
+      <tr>
+        <td style="text-align: left; font-size: 12px; color: #555;">
+          <div>Hall Name <span class="line"></span></div>
+        </td>
+        <td style="text-align: right; font-size: 12px; color: #555;">
+           <div>Seat Number <span class="line"></span></div>
+        </td>
+        <td style="text-align: right; font-size: 12px; color: #555;">
+          <div>Sign <span class="line"></span></div>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" style="margin-top: 40px;">
+      <tr>
+        <td style="text-align: left; font-size: 12px; color: #555;">
+          <strong>Note:</strong> Please bring this slip along with a valid ID to the examination center.
+        </td>
+        <td style="text-align: right; font-size: 12px; color: #555;">
+          For inquiries, contact <strong>08082775076 (WhatsApp only)</strong>
+        </td>
+      </tr>
+    </table>
 
     <div class="footer">
       Generated on {{ date('F j, Y') }}
