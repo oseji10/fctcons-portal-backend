@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Batch;
 use App\Models\BatchedCandidates;
+use App\Models\BatchCandidates;
 use App\Models\PaymentSetting;
 use Illuminate\Support\Str;
 use DB;
@@ -253,7 +254,7 @@ class PaymentController extends Controller
     $applicant = Applications::where('applicationId', $applicationId)->first(); // or Application::...
      $applicant->update(['status' => 'payment_completed']);
     $this->assignBatchToCandidate($applicant);
-    BatchCandidates::updateOrCreate(
+    BatchedCandidates::updateOrCreate(
     [
         'applicationId' => $applicant->applicationId,
         // 'batchId' => $applicant->batch,
