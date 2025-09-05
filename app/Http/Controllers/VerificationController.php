@@ -150,7 +150,7 @@ if (!$batch) {
 
     // 3. Get available halls for this batch
    // Get all active halls
- $availableHalls = Halls::where('isActive', 'true')->get();
+ $availableHalls = Halls::where('isActive', '1')->get();
 
 if ($availableHalls->isEmpty()) {
     throw new \Exception('No active halls available');

@@ -83,11 +83,11 @@ public function changeStatus(Request $request, $batchId)
         // If we're activating verification for this batch, deactivate all others
         if ($status) {
             Batch::where('batchId', '!=', $batchId)
-                 ->update(['isVerificationActive' => 0]);
+                 ->update(['isVerificationActive' => "0"]);
         }
         
         // Update the current batch
-        $batch->update(['isVerificationActive' => $status ? 1 : 0]);
+        $batch->update(['isVerificationActive' => $status ? "1" : "0"]);
 
         DB::commit();
 
