@@ -9,7 +9,7 @@ class BatchController extends Controller
 {
     public function batches(Request $request)
     {
-        $batches = Batch::orderBy('id', 'desc')->get();
+        $batches = Batch::orderBy('id', 'asc')->get();
         return response()->json($batches);
     }
 
@@ -18,7 +18,7 @@ class BatchController extends Controller
     $perPage = $request->query('per_page', 10);
     $search = $request->query('search');
     
-    $query = Batch::orderBy('id', 'desc');
+    $query = Batch::orderBy('id', 'asc');
         
     if ($search) {
         $query->where(function($q) use ($search) {
@@ -59,7 +59,10 @@ class BatchController extends Controller
             'batchId' => $batch->batchId,
             'batchName' => $batch->batchName,
             'examDate' => $batch->examDate,
-            'examTime' => $batch->examTime
+            'examTime' => $batch->examTime,
+            'capacity' => $batch->capacity,
+            'isVerificationActive' => $batch->isVerificationActive,
+            'status' => $batch->status,
         ], 200); // HTTP status code 200: OK
     }
 

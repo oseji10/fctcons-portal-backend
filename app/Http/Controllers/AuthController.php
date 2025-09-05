@@ -102,7 +102,7 @@ class AuthController extends Controller
         // 'lga' => $user->staff && $user->staff->lga ? $user->staff->lga_info->lgaName ?? '' : null, // Safe access
         'access_token' => $accessToken,
     ])
-        ->cookie('access_token', $accessToken, 15, null, null, true, true, false, 'strict')
+        ->cookie('access_token', $accessToken, 60, null, null, true, true, false, 'strict')
         ->cookie('refresh_token', $refreshToken, 14 * 24 * 60, null, null, true, true, false, 'strict');
 }
 
@@ -137,7 +137,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json(['message' => 'Token refreshed'])
-            ->cookie('access_token', $newAccessToken, 15, null, null, true, true, false, 'strict')
+            ->cookie('access_token', $newAccessToken, 60, null, null, true, true, false, 'strict')
             ->cookie('refresh_token', $newRefreshToken, 14 * 24 * 60, null, null, true, true, false, 'strict');
     }
       
@@ -206,10 +206,10 @@ public function register(Request $request)
 }
 
 public function candidateRegister(Request $request)
-    {
-        try {
-            // Validate request data
-           $messages = [
+{
+    try {
+        // Validate request data
+        $messages = [
             'email.unique' => 'The email address is already in use.',
             'jambId.unique' => 'The JAMB ID is already in use.',
         ];
@@ -218,7 +218,7 @@ public function candidateRegister(Request $request)
         $validated = $request->validate([
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
-            'phoneNumber' => 'nullable|string|max:14|regex:/^\+?\d{10,15}$/',
+            'phoneNumber' => 'nullable|string|max:20', // Increased max length and removed regex validation
             'otherNames' => 'nullable|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'password' => 'required|string|min:6',
@@ -226,75 +226,110 @@ public function candidateRegister(Request $request)
             'jambId' => 'nullable|string|unique:users,jambId|max:255',
         ], $messages);
 
-            // Generate applicationId based on applicationType
-            $prefix = match ($validated['applicationType']) {
-                "1" => 'NDN25',
-                "2" => 'BMW25',
-                "3" => 'PBN25',
-                default => throw new \Exception('Invalid application type'),
-            };
-            $randomDigits = str_pad(mt_rand(0, 9999999), 7, '0', STR_PAD_LEFT);
-            $applicationId = $prefix . $randomDigits;
-
-            // Create user
-            $user = User::create([
-                'firstName' => $validated['firstName'],
-                'lastName' => $validated['lastName'],
-                'phoneNumber' => $validated['phoneNumber'],
-                'otherNames' => $validated['otherNames'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'applicationType' => $validated['applicationType'],
-                'role' => 1, // Hardcoded role for candidate
-                'jambId' => $validated['jambId'] ?? null,
-
-            ]);
-
-            // Create application
-            $application = Applications::create([
-                'userId' => $user->id,
-                'applicationId' => $applicationId,
-                'applicationType' => $validated['applicationType'],
-                'jambId' => $validated['jambId'] ?? null,
-                'status' => 'not_submitted'
-            ]);
-
-            Log::info('User created:', ['email' => $user->email]);
-
-            // Send welcome email
-            try {
-                Mail::to($user->email)->send(new WelcomeEmail(
-                    $user->firstName,
-                    $user->lastName,
-                    $user->email,
-                    $request->password // Consider removing this for security
-                ));
-                Log::info('Email sent successfully to ' . $user->email);
-            } catch (\Exception $e) {
-                Log::error('Email sending failed: ' . $e->getMessage());
-                // Note: Not failing the request due to email error
+        // Format phone number: remove country code, spaces, and ensure it starts with 0
+        $phoneNumber = $validated['phoneNumber'] ?? null;
+        if ($phoneNumber) {
+            // Remove all non-digit characters first (spaces, +, etc.)
+            $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
+            
+            // If it starts with country code (234 for Nigeria), remove it
+            if (strpos($phoneNumber, '234') === 0) {
+                $phoneNumber = substr($phoneNumber, 3);
             }
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Registration successful! Please check your email for a welcome message.',
-                // 'applicationId' => $applicationId,
-            ], 201);
-
-        } catch (ValidationException $e) {
+            
+            // Ensure it starts with 0
+            if (strpos($phoneNumber, '0') !== 0) {
+                $phoneNumber = '0' . $phoneNumber;
+            }
+            
+            // Validate the final format (should be 11 digits for Nigerian numbers)
+            if (strlen($phoneNumber) !== 11 || !is_numeric($phoneNumber)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid phone number format. Please provide a valid Nigerian phone number.',
+                    'errors' => [
+                        'phoneNumber' => ['The phone number must be a valid Nigerian number (11 digits starting with 0).']
+                    ]
+                ], 422);
+            }
+        } else {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validation failed.',
-                'errors' => $e->errors(),
+                'message' => 'Phone number is required.',
+                'errors' => [
+                    'phoneNumber' => ['The phone number field is required.']
+                ]
             ], 422);
-        } catch (\Exception $e) {
-            Log::error('Registration failed: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Registration failed due to an unexpected error. Please try again later.',
-            ], 500);
         }
+
+        // Generate applicationId based on applicationType
+        $prefix = match ($validated['applicationType']) {
+            "1" => 'NDN25',
+            "2" => 'BMW25',
+            "3" => 'PBN25',
+            default => throw new \Exception('Invalid application type'),
+        };
+        $randomDigits = str_pad(mt_rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+        $applicationId = $prefix . $randomDigits;
+
+        // Create user
+        $user = User::create([
+            'firstName' => $validated['firstName'],
+            'lastName' => $validated['lastName'],
+            'phoneNumber' => $phoneNumber, // Use the formatted phone number
+            'otherNames' => $validated['otherNames'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'applicationType' => $validated['applicationType'],
+            'role' => 1, // Hardcoded role for candidate
+            'jambId' => $validated['jambId'] ?? null,
+        ]);
+
+        // Create application
+        $application = Applications::create([
+            'userId' => $user->id,
+            'applicationId' => $applicationId,
+            'applicationType' => $validated['applicationType'],
+            'jambId' => $validated['jambId'] ?? null,
+            'status' => 'not_submitted'
+        ]);
+
+        Log::info('User created:', ['email' => $user->email]);
+
+        // Send welcome email
+        try {
+            Mail::to($user->email)->send(new WelcomeEmail(
+                $user->email,
+                $user->firstName,
+                $user->lastName,
+                $request->password // Consider removing this for security
+            ));
+            Log::info('Email sent successfully to ' . $user->email);
+        } catch (\Exception $e) {
+            Log::error('Email sending failed: ' . $e->getMessage());
+            // Note: Not failing the request due to email error
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Registration successful! Please check your email for a welcome message.',
+            // 'applicationId' => $applicationId,
+        ], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Validation failed.',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Registration failed: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Registration failed due to an unexpected error. Please try again later.',
+        ], 500);
     }
+}
 
     public function changePassword(Request $request)
 {

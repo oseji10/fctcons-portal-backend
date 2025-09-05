@@ -286,9 +286,11 @@ class ApplicationController extends Controller
     $signed_up = Applications::where('status', '=', 'not_submitted')->count();
     $payment_pending = Applications::where('status', '=', 'payment_pending')->count();
     $payment_completed = Applications::where('status', '=', 'payment_completed')->count();
-    $sum_payments = Payment::sum('amount');
+    $sum_payments = Payment::where('status', 'payment_completed')->sum('amount');
     $batched_candidates = BatchedCandidates::count();
     $rebatched_candidates = ReBatchedCandidates::count();
+    $total_batches = Batch::count();
+    $total_candidates_verified = Applications::where('status', 'verified')->count();
 
     return response()->json([
         'signed_up' => $signed_up,
@@ -297,6 +299,8 @@ class ApplicationController extends Controller
         'total' => $sum_payments,
         'batched_candidates' => $batched_candidates,
         'rebatched_candidates' => $rebatched_candidates,
+        'total_batches' => $total_batches,
+        'total_candidates_verified' => $total_candidates_verified,
     ]);
  }
 

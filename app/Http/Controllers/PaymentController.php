@@ -232,7 +232,7 @@ class PaymentController extends Controller
     $apiKey = env('REMITA_API_KEY');
     $remitaUrl = env('REMITA_API_VERIFY_URL'); // e.g., https://remitademo.net/remita/exapp/api/v1/send/api/echannelsvc/merchant/api/paymentstatus
 
-    // ✅ Correct hash generation
+ 
     $apiHash = hash('sha512', $rrr . $apiKey . $merchantId);
 
     try {
@@ -260,7 +260,7 @@ class PaymentController extends Controller
     ],
     [
         'batchId' => $applicant->batch,
-        'assigned_at' => now(), // ✅ only goes into the update/insert data
+        'assigned_at' => now(),
     ]
 );
 
@@ -291,9 +291,8 @@ private function assignBatchToCandidate(Applications $applicant)
 {
 
 DB::transaction(function () use ($applicant) {
-    // ✅ Skip if already assigned
     if ($applicant->batch) {
-        return; // Already assigned, skip
+        return; 
     }
 
     $batches = Batch::orderByRaw("LENGTH(batchId), batchId")->get();
@@ -302,16 +301,10 @@ DB::transaction(function () use ($applicant) {
         $assignedCount = Applications::where('batch', $batch->batchId)->count();
 
         if ($assignedCount < $batch->capacity) {
-            // ✅ Assign batch to candidate
             $applicant->batch = $batch->batchId;
             $applicant->save();
 
-            // // ✅ Log assignment
-            // BatchAssignment::create([
-            //     'applicationId' => $applicant->applicationId,
-            //     'batchId' => $batch->batchId,
-            //     'assigned_at' => now(),
-            // ]);
+           
 
             return;
         }
@@ -324,7 +317,6 @@ DB::transaction(function () use ($applicant) {
 
  
 public function logBatchInfo (Applications $applicant) {
-// ✅ Log assignment
 $batch = $applicant->batch->batchId;
             BatchedCandidates::create([
                 'applicationId' => $applicant->applicationId,
@@ -353,6 +345,16 @@ $batch = $applicant->batch->batchId;
     public function all_payments(){
         $all_payments = Payment::with('users')->limit('10')->get();
         return response()->json($all_payments);
+    }
+
+    public function recentPayments() {
+        $recentPayments = Payment::with('users')
+        ->where('status', 'payment_completed')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return response()->json($recentPayments);
     }
 }
 

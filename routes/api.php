@@ -108,7 +108,8 @@ use App\Http\Controllers\HallController;
     
     Route::get('/all-payments', [PaymentController::class, 'all_payments']);
     Route::get('/analytics', [ApplicationController::class, 'analytics']);
-    
+    Route::get('/payments/recent', [PaymentController::class, 'recentPayments']);
+
     Route::get('/applicant/verify/{identifier}', [VerificationController::class, 'verifyCandidate']);
     Route::post('/applicant/mark-present', [VerificationController::class, 'markPresent']);
 });
