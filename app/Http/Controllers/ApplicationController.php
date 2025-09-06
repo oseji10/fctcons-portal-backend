@@ -304,6 +304,12 @@ class ApplicationController extends Controller
     ]);
  }
 
+ public function batched_candidates(Request $request){
+    $results = BatchedCandidates::select('batchId', DB::raw('COUNT(applicationId) as total_candidates'))
+    ->groupBy('batchId')
+    ->get();
+    return response()->json($results);
+ }
 
  public function changeBatch(Request $request, Applications $applicationId)
 {

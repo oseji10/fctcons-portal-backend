@@ -76,7 +76,7 @@ use App\Http\Controllers\HallController;
     Route::get('/application/status', [ApplicationController::class, 'applicationStatus']);
     Route::put('/application/{applicationId}/change-batch', [ApplicationController::class, 'changeBatch']);
     Route::get('/attendance', [ApplicationController::class, 'attendance']);
-    Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');
+    // Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');
 
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
@@ -112,12 +112,14 @@ use App\Http\Controllers\HallController;
 
     Route::get('/applicant/verify/{identifier}', [VerificationController::class, 'verifyCandidate']);
     Route::post('/applicant/mark-present', [VerificationController::class, 'markPresent']);
+    Route::get('/batched_candidates', [ApplicationController::class, 'batched_candidates']);
 });
 
-
 Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);
-        Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBeneficiaries']);
+Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBeneficiaries']);
 
-    Route::options('{any}', function () {
+Route::options('{any}', function () {
     return response()->json([], 200);
 })->where('any', '.*');
+
+Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');

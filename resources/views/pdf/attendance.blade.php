@@ -81,6 +81,8 @@
                 <th width="15%">Application ID</th>
                 <th width="20%">Candidate Name</th>
                 <th width="10%">JAMB ID</th>
+                <th width="10%">Phone Number</th>
+                <th width="10%">Alt. Phone No.</th>
                 <th width="5%">Seat No.</th>
                 <th width="15%">Signature</th>
                 <!-- <th width="15%">Invigilator's Initial</th>
@@ -94,6 +96,8 @@
                 <td>{{ $record->applicationId }}</td>
                 <td>{{ $record->users->firstName }} {{ $record->users->lastName }}</td>
                 <td>{{ $record->jambId }}</td>
+                <td>{{ $record->users->phoneNumber }}</td>
+                <td></td>
                 <td>{{ $record->seatNumber }}</td>
                 <td>
                     <div class="signature"></div>
