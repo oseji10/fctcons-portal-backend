@@ -14,7 +14,7 @@ class VerificationController extends Controller
     public function verifyCandidate($identifier)
     {
         try {
-            $candidate = Applications::with('users', 'photograph')->where('applicationId', $identifier)
+            $candidate = Applications::with('users', 'photograph', 'jamb', 'batch_relation')->where('applicationId', $identifier)
                 ->orWhere('jambId', $identifier)
                 ->first();
 
@@ -45,12 +45,16 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
                 'dateOfBirth' => $candidate->dateOfBirth,
                 'gender' => $candidate->gender,
                 'batch' => $candidate->batch,
+                'stateOfOrigin' => $candidate->jamb->state ?? null,
+                'gender' => $candidate->gender,
                 // 'passportPhoto' => $candidate->photograph->photoPath ?? null,
                 // 'passportPhoto' => $candidate->photograph->photoPath ? asset('storage/'.$candidate->passport_photo) : null,
                 'passportPhoto' => $base64Image ?? null,
                 'isPresent' => $candidate->isPresent,
                 'hall' => $candidate->hall ?? null,
                 'seatNumber' => $candidate->seatNumber ?? null,
+                'examDate' => $candidate->batch_relation ? $candidate->batch_relation->examDate : null,
+                'examTime' => $candidate->batch_relation ? $candidate->batch_relation->examTime : null,
             ]);
 
         } catch (\Exception $e) {

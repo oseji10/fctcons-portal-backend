@@ -78,7 +78,7 @@
             <h1>FCT College of Nursing Sciences</h1>
         <h1>EXAMINATION ATTENDANCE SHEET</h1>
         <h2>{{ $batch->batchName }} ({{ $batch->batchId }})</h2>
-        <p>Hall: {{ $hall->hallName }}| Date: {{ $date }}</p>
+        <p>Hall: {{ $hall->hallName }} | Date: {{ $date }}</p>
     </div>
 
     <table>
