@@ -476,7 +476,8 @@ public function printAttendance(Request $request)
 
   public function candidates_states(Request $request)
 {
-    $results = Applications::with('jamb:jambId,state') // eager load only the fields needed
+    $results = Applications::with('jamb:jambId,state')
+    ->where('status', 'payment_completed') // eager load only the fields needed
         ->get()
         ->groupBy(fn($app) => $app->jamb->state ?? 'N/A')
         ->map(fn($group) => [
@@ -492,7 +493,8 @@ public function printAttendance(Request $request)
 
   public function candidates_gender(Request $request)
 {
-    $results = Applications::with('jamb:jambId,gender') // eager load only the fields needed
+    $results = Applications::with('jamb:jambId,gender')
+    ->where('status', 'payment_completed')  // eager load only the fields needed
         ->get()
         ->groupBy(fn($app) => $app->jamb->gender ?? 'N/A')
         ->map(fn($group) => [
