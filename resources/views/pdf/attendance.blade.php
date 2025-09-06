@@ -28,19 +28,26 @@
             border-collapse: collapse;
             margin-top: 20px;
         }
-        th, td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-        }
+       th, td {
+    border: 1px solid #000;
+    padding: 4px 6px; /* reduced padding */
+    text-align: left;
+    line-height: 1.2; /* tighter line height */
+}
+
+.signature {
+    height: 30px; /* reduced from 50px */
+    margin-top: 5px; /* less spacing */
+}
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        .signature {
+        /* .signature {
             height: 50px;
             margin-top: 10px;
-        }
+        } */
         .footer {
             margin-top: 20px;
             text-align: right;
@@ -71,7 +78,7 @@
             <h1>FCT College of Nursing Sciences</h1>
         <h1>EXAMINATION ATTENDANCE SHEET</h1>
         <h2>{{ $batch->batchName }} ({{ $batch->batchId }})</h2>
-        <p>Hall: {{ $hall->hallName }} ({{ $hall->hallId }}) | Date: {{ $date }}</p>
+        <p>Hall: {{ $hall->hallName }}| Date: {{ $date }}</p>
     </div>
 
     <table>
