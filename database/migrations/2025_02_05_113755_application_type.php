@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('application_types', function (Blueprint $table) {
             $table->id('typeId');
             $table->string('typeName')->nullable();
+            $table->string('applicationTypeName')->nullable();
             $table->string('amount')->nullable();
             
             $table->timestamps();

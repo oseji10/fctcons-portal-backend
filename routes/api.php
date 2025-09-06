@@ -112,7 +112,11 @@ use App\Http\Controllers\HallController;
 
     Route::get('/applicant/verify/{identifier}', [VerificationController::class, 'verifyCandidate']);
     Route::post('/applicant/mark-present', [VerificationController::class, 'markPresent']);
-    Route::get('/batched_candidates', [ApplicationController::class, 'batched_candidates']);
+
+    Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');
+Route::get('/candidates_states', [ApplicationController::class, 'candidates_states']);
+Route::get('/candidates_gender', [ApplicationController::class, 'candidates_gender']);
+Route::get('/batched_candidates', [ApplicationController::class, 'batched_candidates']);
 });
 
 Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);
@@ -122,4 +126,3 @@ Route::options('{any}', function () {
     return response()->json([], 200);
 })->where('any', '.*');
 
-Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');

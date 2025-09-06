@@ -17,7 +17,7 @@ use App\Models\BatchedCandidates;
 use App\Models\ReBatchedCandidates;
 use App\Models\ReBatchedCandidatesHistory;
 use PDF;
-
+use DB;
 class ApplicationController extends Controller
 {
     public function index2()
@@ -64,27 +64,7 @@ class ApplicationController extends Controller
     return response()->json($applications);
 }
 
-     public function store(Request $request)
-    {
-       $validated = $request->validate([
-            'acronym' => 'required|string|max:255',
-            'hospitalName' => 'required|string|max:255',
-            'location' => 'nullable|max:255',
-            
-        ]);
-        $validated['status'] = 'active';
-        $hospitals = Hospital::create($validated);
-        $hospitals->load(['contact_person', 'hospital_location']);
-        return response()->json([
-            'hospitalId' => $hospitals->hospitalId,
-            'acronym' => $hospitals->acronym,
-            'hospitalName' => $hospitals->hospitalName,
-            // 'contactPerson' => $hospitals->contactPerson,
-            'contactPerson' => $hospitals->contactPerson ? $hospitals->contact_person->firstName : null,
-            'location' => $hospitals->location ? $hospitals->hospital_location->stateName : null,
-    ], 201); // HTTP status code 201: Created
 
-    }
 
 
       public function apply(Request $request)
@@ -105,7 +85,7 @@ class ApplicationController extends Controller
 
             // Validate request data
             $validated = $request->validate([
-                'gender' => 'required|string|in:Male,Female,Other',
+                // 'gender' => 'required|string|in:Male,Female,Other',
                 'dateOfBirth' => 'required|date',
                 'maritalStatus' => 'nullable|string|in:Single,Married,Divorced,Widowed',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024', // Max 2MB
@@ -132,7 +112,7 @@ class ApplicationController extends Controller
 
             // Prepare data for update or create
             $applicationData = [
-                'gender' => $validated['gender'],
+                // 'gender' => $validated['gender'],
                 'dateOfBirth' => $validated['dateOfBirth'],
                 'maritalStatus' => $validated['maritalStatus'] ?? null,
                 
@@ -281,35 +261,6 @@ class ApplicationController extends Controller
     }
 
 
-    // Analytics
- public function analytics(){
-    $signed_up = Applications::where('status', '=', 'not_submitted')->count();
-    $payment_pending = Applications::where('status', '=', 'payment_pending')->count();
-    $payment_completed = Applications::where('status', '=', 'payment_completed')->count();
-    $sum_payments = Payment::where('status', 'payment_completed')->sum('amount');
-    $batched_candidates = BatchedCandidates::count();
-    $rebatched_candidates = ReBatchedCandidates::count();
-    $total_batches = Batch::count();
-    $total_candidates_verified = Applications::where('status', 'verified')->count();
-
-    return response()->json([
-        'signed_up' => $signed_up,
-        'payment_pending' => $payment_pending,
-        'payment_completed' => $payment_completed,
-        'total' => $sum_payments,
-        'batched_candidates' => $batched_candidates,
-        'rebatched_candidates' => $rebatched_candidates,
-        'total_batches' => $total_batches,
-        'total_candidates_verified' => $total_candidates_verified,
-    ]);
- }
-
- public function batched_candidates(Request $request){
-    $results = BatchedCandidates::select('batchId', DB::raw('COUNT(applicationId) as total_candidates'))
-    ->groupBy('batchId')
-    ->get();
-    return response()->json($results);
- }
 
  public function changeBatch(Request $request, Applications $applicationId)
 {
@@ -492,4 +443,69 @@ public function printAttendance(Request $request)
         return $pdf->stream("attendance_{$batch}_{$hall}.pdf");
     }
 
+
+        // Analytics
+ public function analytics(){
+    $signed_up = Applications::where('status', '=', 'not_submitted')->count();
+    $payment_pending = Applications::where('status', '=', 'payment_pending')->count();
+    $payment_completed = Applications::where('status', '=', 'payment_completed')->count();
+    $sum_payments = Payment::where('status', 'payment_completed')->sum('amount');
+    $batched_candidates = BatchedCandidates::count();
+    $rebatched_candidates = ReBatchedCandidates::count();
+    $total_batches = Batch::count();
+    $total_candidates_verified = Applications::where('status', 'verified')->count();
+
+    return response()->json([
+        'signed_up' => $signed_up,
+        'payment_pending' => $payment_pending,
+        'payment_completed' => $payment_completed,
+        'total' => $sum_payments,
+        'batched_candidates' => $batched_candidates,
+        'rebatched_candidates' => $rebatched_candidates,
+        'total_batches' => $total_batches,
+        'total_candidates_verified' => $total_candidates_verified,
+    ]);
+ }
+
+ public function batched_candidates(Request $request){
+    $results = BatchedCandidates::select('batchId', DB::raw('COUNT(applicationId) as total_candidates'))
+    ->groupBy('batchId')
+    ->get();
+    return response()->json($results);
+ }
+
+  public function candidates_states(Request $request)
+{
+    $results = Applications::with('jamb:jambId,state') // eager load only the fields needed
+        ->get()
+        ->groupBy(fn($app) => $app->jamb->state ?? 'N/A')
+        ->map(fn($group) => [
+            'state' => $group->first()->jamb->state ?? 'N/A',
+            'total_candidates' => $group->count(),
+        ])
+        ->sortByDesc('total_candidates')
+        ->values(); // reset array keys
+
+    return response()->json($results);
 }
+
+
+  public function candidates_gender(Request $request)
+{
+    $results = Applications::with('jamb:jambId,gender') // eager load only the fields needed
+        ->get()
+        ->groupBy(fn($app) => $app->jamb->gender ?? 'N/A')
+        ->map(fn($group) => [
+            'gender' => $group->first()->jamb->gender ?? 'N/A',
+            'total_candidates' => $group->count(),
+        ])
+        ->sortByDesc('total_candidates')
+        ->values(); // reset array keys
+
+    return response()->json($results);
+}
+
+
+
+}
+

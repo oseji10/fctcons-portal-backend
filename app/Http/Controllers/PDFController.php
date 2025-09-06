@@ -16,7 +16,7 @@ class PDFController extends Controller
    public function generateExamSlip($applicationId)
     {
         // Fetch application data with batch information
-        $application = Applications::with(['olevelresults', 'batch_relation', 'users', 'jamb'])->findOrFail($applicationId);
+        $application = Applications::with(['olevelresults', 'batch_relation', 'users', 'jamb', 'application_type'])->findOrFail($applicationId);
 
         // Generate QR code as base64 image
         // $verificationUrl = url("/verify-slip/{$applicationId}");
@@ -90,7 +90,9 @@ try {
             'examTime' => $application->batch_relation ? $application->batch_relation->examTime : 'N/A',
             'passport' => $base64Image2,
             'stateOfOrigin' => $application->jamb->state,
+            'lga' => $application->jamb->lga,
             'jambId' => $application->jamb->jambId,
+            'applicationType' => $application->application_type ? $application->application_type->applicationTypeName : 'N/A',
         ];
 
         // Load the Blade view and generate PDF

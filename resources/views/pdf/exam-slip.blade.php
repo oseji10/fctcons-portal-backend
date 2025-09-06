@@ -233,12 +233,12 @@
         <td style="text-align: left; font-size: 14px;">
             <div class="exam-details">
         <h3>Examination Details</h3>
-        <div><strong>Application ID:</strong> {{ $applicationId }}</div>
-        <div><strong>JAMB ID:</strong> {{ $jambId ?? 'N/A' }}</div>
-        <div><strong>Batch ID:</strong> {{ $batchId }}</div>
-        <div><strong>Exam Date:</strong> {{ $examDate !== 'N/A' ? \Carbon\Carbon::parse($examDate)->format('l, jS F Y') : 'N/A' }}</div>
-        <div><strong>Exam Time:</strong> {{ $examTime ? \Carbon\Carbon::parse($examTime)->format('h:i A') : 'N/A' }}</div>
-      </div> 
+        <div style="font-weight: bold; font-size: 20px;"><strong>Application ID:</strong> {{ $applicationId }}</div>
+        <div style="font-weight: bold; font-size: 20px;"><strong>JAMB ID:</strong> {{ $jambId ?? 'N/A' }}</div>
+        <div style="font-weight: bold; font-size: 20px;"><strong>Batch ID:</strong> {{ $batchId }}</div>
+        <div style="font-weight: bold; font-size: 20px;"><strong>Exam Date:</strong> {{ $examDate !== 'N/A' ? \Carbon\Carbon::parse($examDate)->format('l, jS F Y') : 'N/A' }}</div>
+        <div style="font-weight: bold; font-size: 20px;"><strong>Exam Time:</strong> {{ $examTime ? \Carbon\Carbon::parse($examTime)->format('h:i A') : 'N/A' }}</div>
+      </div>
         </td>
         <td style="text-align: right; font-size: 14px;">
              <div class="photo-placeholder">
@@ -285,10 +285,11 @@
         <td style="width: 50%; padding-right: 10px; vertical-align: top;">
           <div class="section">
             <div class="details-grid">
-              <div><strong>Name:</strong> {{ $fullname ?? 'N/A' }}</div>
-              <div><strong>Email:</strong> {{ $email }}</div>
-              <div><strong>Date of Birth:</strong> {{ $dateOfBirth }}</div>
-              <div><strong>State of Origin:</strong> {{ $stateOfOrigin ?? 'N/A' }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Name:</strong> {{ $fullname ?? 'N/A' }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Email:</strong> {{ $email }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Date of Birth:</strong> {{ $dateOfBirth }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>State of Origin:</strong> {{ $stateOfOrigin ?? 'N/A' }}</div>
+                <div style="font-weight: bold; font-size: 20px;"><strong>Application Type:</strong> {{ $applicationType }}</div>
             </div>
           </div>
         </td>
@@ -298,9 +299,10 @@
             <!-- <h3>Next of Kin</h3> -->
             <div class="details-grid">
               
-              <div><strong>Phone:</strong> {{ $phoneNumber }}</div>
-              <div><strong>Gender:</strong> {{ $gender }}</div>
-              <div><strong>Marital Status:</strong> {{ $maritalStatus }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Phone:</strong> {{ $phoneNumber }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Gender:</strong> {{ $gender }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>Marital Status:</strong> {{ $maritalStatus }}</div>
+              <div style="font-weight: bold; font-size: 20px;"><strong>LGA:</strong> {{ $lga ?? 'N/A' }}</div>
             </div>
           </div>
         </td>
@@ -312,19 +314,19 @@
       <table class="olevel-table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Grade</th>
-            <th>Exam Year</th>
-            <th>Exam Type</th>
+            <th style="font-weight: bold; font-size: 20px;">Subject</th>
+            <th style="font-weight: bold; font-size: 20px;">Grade</th>
+            <th style="font-weight: bold; font-size: 20px;">Exam Year</th>
+            <th style="font-weight: bold; font-size: 20px;">Exam Type</th>
           </tr>
         </thead>
         <tbody>
           @foreach ($olevelResults as $result)
           <tr>
-            <td>{{ $result->subject }}</td>
-            <td>{{ $result->grade }}</td>
-            <td>{{ $result->examYear }}</td>
-            <td>{{ $result->examType }}</td>
+            <td style="font-weight: bold; font-size: 20px;">{{ $result->subject }}</td>
+            <td style="font-weight: bold; font-size: 20px;">{{ $result->grade }}</td>
+            <td style="font-weight: bold; font-size: 20px;">{{ $result->examYear }}</td>
+            <td style="font-weight: bold; font-size: 20px;">{{ $result->examType }}</td>
           </tr>
           @endforeach
         </tbody>
@@ -338,13 +340,13 @@
     </div>
     <table width="100%" style="margin-top: 20px;">
       <tr>
-        <td style="text-align: left; font-size: 12px; color: #555;">
+        <td style="text-align: left; font-size: 16px; color: #555;">
           <div>Hall Name <span class="line"></span></div>
         </td>
-        <td style="text-align: right; font-size: 12px; color: #555;">
+        <td style="text-align: right; font-size: 16px; color: #555;">
            <div>Seat Number <span class="line"></span></div>
         </td>
-        <td style="text-align: right; font-size: 12px; color: #555;">
+        <td style="text-align: right; font-size: 16px; color: #555;">
           <div>Sign <span class="line"></span></div>
         </td>
       </tr>
