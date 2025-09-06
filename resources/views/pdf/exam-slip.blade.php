@@ -355,7 +355,8 @@
     <table width="100%" style="margin-top: 40px;">
       <tr>
         <td style="text-align: left; font-size: 12px; color: #555;">
-          <strong>Note:</strong> Please bring this slip along with a valid ID to the examination center.
+          <strong>Note:</strong> Please bring this slip to the examination center.
+          <!-- <strong>Note:</strong> Please bring this slip along with a valid ID to the examination center. -->
         </td>
         <td style="text-align: right; font-size: 12px; color: #555;">
           For inquiries, contact <strong>08082775076 (WhatsApp only)</strong>
