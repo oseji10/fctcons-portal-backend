@@ -20,11 +20,12 @@ class JambRecordsImport implements ToModel, WithHeadingRow
         // Map Excel headers to database fields
         $mappedData = [
             'jambId' => $data['jambid'] ?? null,
-            'firstName' => $data['firstname'] ?? null,
             'lastName' => $data['lastname'] ?? null,
+            'firstName' => $data['firstname'] ?? null,
             'otherNames' => $data['othernames'] ?? null,
             'gender' => $data['gender'] ?? null,
             'state' => $data['state'] ?? null,
+            'lga' => $data['lga'] ?? null,
             'aggregateScore' => $data['aggregatescore'] ?? null,
         ];
 
@@ -42,7 +43,8 @@ class JambRecordsImport implements ToModel, WithHeadingRow
             'otherNames' => 'nullable|string|max:255',
             'gender' => 'required|in:M,F,Other',
             'state' => 'required|string|max:100',
-            'aggregateScore' => 'required|numeric|min:0|max:400',
+            'lga' => 'nullable|string|max:100',
+            'aggregateScore' => 'nullable|numeric|min:0|max:400',
         ]);
 
         if ($validator->fails()) {
@@ -57,6 +59,7 @@ class JambRecordsImport implements ToModel, WithHeadingRow
             'otherNames' => $mappedData['otherNames'],
             'gender' => $mappedData['gender'],
             'state' => $mappedData['state'],
+            'lga' => $mappedData['lga'],
             'aggregateScore' => $mappedData['aggregateScore'],
         ]);
     }

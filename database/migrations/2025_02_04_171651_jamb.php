@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('otherNames')->nullable();
             $table->string('gender')->nullable();
             $table->string('state')->nullable();
+            $table->string('lga')->nullable();
             $table->string('aggregateScore')->nullable();
             
             $table->timestamps();

@@ -17,6 +17,7 @@ class JAMB extends Model
         'otherNames',
         'gender',
         'state',
+        'lga',
         'aggregateScore',
     ];
     protected $primaryKey = 'jambId';
