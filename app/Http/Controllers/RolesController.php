@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Roles;
+use App\Models\Role;
 class RolesController extends Controller
 {
     public function RetrieveAll()
@@ -13,9 +13,9 @@ class RolesController extends Controller
        
     }
 
-    public function hospitalRoles()
+    public function admin_roles()
     {
-        $roles = Roles::where('roleType', '=', 'HOSPITAL')->get();
+        $roles = Role::whereIn('roleId', [2, 3, 4])->get();
         return response()->json($roles);
        
     }

@@ -22,6 +22,32 @@ class UsersController extends Controller
         return response()->json($users);
        
     }
+public function admins(Request $request)
+{
+    $perPage = $request->query('per_page', 10);
+    $role = $request->query('role');
+    $search = $request->query('search');
+
+    $query = User::whereIn('role', [2, 3, 4])->with('user_role'); // Combine roles
+
+    if ($role) {
+        $query->where('role', $role);
+    }
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('firstName', 'like', "%$search%")
+              ->orWhere('lastName', 'like', "%$search%")
+              ->orWhere('email', 'like', "%$search%")
+              ->orWhere('phoneNumber', 'like', "%$search%");
+        });
+    }
+
+    $users = $query->paginate($perPage);
+
+    return response()->json($users);
+}
+
 
   public function supervisors()
 {
@@ -51,8 +77,6 @@ class UsersController extends Controller
         'otherNames' => 'nullable|string|max:255',
         'phoneNumber' => 'nullable|string|max:20',
         'email' => 'nullable|email|max:255|unique:users,email',
-        'staff.staffType' => 'required|integer|exists:staff_type,typeId',
-        'staff.lga' => 'required|integer|exists:lgas,lgaId',
     ]);
 
     $default_password = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
@@ -64,21 +88,10 @@ class UsersController extends Controller
         'phoneNumber' => $request->phoneNumber,
         'email' => $request->email,
         'password' => Hash::make($default_password),
-        'role' => 2,
+        'role' => $request->roleId,
     ]);
 
 
-    
-    $data = array_merge($validatedData, [
-        'userId' => $user->id,
-        'effectiveFrom' => now(),
-        'isActive' => 'true',
-        'effectiveUntil' => null,
-        'supervisor' => $request->staff['supervisor'] ?? null, // Optional
-        'lga' => $request->staff['lga'], // Ensure this is set correctly
-        'staffType' => $request->staff['staffType'], // Ensure this is set correctly
-    ]); 
-    $staff = Staff::create($data);
     Log::info('User created:', ['email' => $user->email]);
 
     // Send email
@@ -91,19 +104,19 @@ class UsersController extends Controller
 
     // Return response
       
-    $staff->load('staff_type', 'lga_info', 'supervisor_info');
+    //$staff->load('staff_type', 'lga_info', 'supervisor_info');
+    $user->load('user_role');
     return response()->json([
         'message' => "User successfully created",
         'password' => $default_password,
-        'staffId' => $staff->staffId,
         'firstName' => $user->firstName,
         'lastName' => $user->lastName,
         'otherNames' => $user->otherNames,
         'phoneNumber' => $user->phoneNumber,
         'email' => $user->email,
-        'staffType' => $staff->staff_type->typeName,
-        'lga' => $staff->lga_info->lgaName,
-        'supervisor' => $staff->supervisor_info ? $staff->supervisor_info->firstName . ' ' . $staff->supervisor_info->lastName : null,
+        'role' => $user->user_role->roleName,
+        'id' => $user->id,
+        
     ], 201);
 }
 
@@ -119,26 +132,37 @@ class UsersController extends Controller
         return response()->json($staff);
     }
 
-   public function destroy($id): JsonResponse
+       public function destroy($userId)
     {
-        return DB::transaction(function () use ($id) {
-            // Find the user
-            $user = User::find($id);
-            if (!$user) {
-                return response()->json(['message' => 'Staff not found'], 404);
-            }
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
 
-            // Find the associated staff record
-            $staff = Staff::where('userId', $id)->first();
-            if (!$staff) {
-                return response()->json(['message' => 'Associated staff record not found'], 404);
-            }
-
-            // Delete both records
-            $staff->delete();
-            $user->delete();
-
-            return response()->json(['message' => 'Staff deleted successfully']);
-        }, 5);
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully']);
     }
+
+//    public function destroy($id): JsonResponse
+//     {
+//         return DB::transaction(function () use ($id) {
+//             // Find the user
+//             $user = User::find($id);
+//             if (!$user) {
+//                 return response()->json(['message' => 'Staff not found'], 404);
+//             }
+
+//             // Find the associated staff record
+//             $staff = Staff::where('userId', $id)->first();
+//             if (!$staff) {
+//                 return response()->json(['message' => 'Associated staff record not found'], 404);
+//             }
+
+//             // Delete both records
+//             $staff->delete();
+//             $user->delete();
+
+//             return response()->json(['message' => 'Staff deleted successfully']);
+//         }, 5);
+//     }
 }

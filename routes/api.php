@@ -65,6 +65,11 @@ use App\Http\Controllers\HallController;
         });
 
         // Application routes
+    Route::get('/users/admins', [UsersController::class, 'admins']);
+    Route::post('/users', [UsersController::class, 'store']);
+    Route::get('/users/admin_roles', [RolesController::class, 'admin_roles']);
+    Route::delete('/users/{userId}/delete', [UsersController::class, 'destroy']);
+
     Route::post('/jamb/upload', [JAMBController::class, 'upload']);
     Route::delete('/jamb/{jambId}', [JAMBController::class, 'destroy']);
     Route::get('/jamb/search', [JambController::class, 'search']);
