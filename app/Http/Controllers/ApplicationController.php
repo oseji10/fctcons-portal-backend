@@ -453,7 +453,7 @@ public function printAttendance(Request $request)
     $batched_candidates = BatchedCandidates::count();
     $rebatched_candidates = ReBatchedCandidates::count();
     $total_batches = Batch::count();
-    $total_candidates_verified = Applications::where('status', 'verified')->count();
+    $total_candidates_verified = Applications::where('isPresent', '=', 'true')->count();
 
     return response()->json([
         'signed_up' => $signed_up,
