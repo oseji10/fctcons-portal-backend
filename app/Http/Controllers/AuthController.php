@@ -228,30 +228,34 @@ public function candidateRegister(Request $request)
 
         // Format phone number: remove country code, spaces, and ensure it starts with 0
         $phoneNumber = $validated['phoneNumber'] ?? null;
-        if ($phoneNumber) {
-            // Remove all non-digit characters first (spaces, +, etc.)
-            $phoneNumber = preg_replace('/\D/', '', $phoneNumber);
-            
-            // If it starts with country code (234 for Nigeria), remove it
-            if (strpos($phoneNumber, '234') === 0) {
-                $phoneNumber = substr($phoneNumber, 3);
-            }
-            
-            // Ensure it starts with 0
-            if (strpos($phoneNumber, '0') !== 0) {
-                $phoneNumber = '0' . $phoneNumber;
-            }
-            
-            // Validate the final format (should be 11 digits for Nigerian numbers)
-            if (strlen($phoneNumber) !== 11 || !is_numeric($phoneNumber)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid phone number format. Please provide a valid Nigerian phone number.',
-                    'errors' => [
-                        'phoneNumber' => ['The phone number must be a valid Nigerian number (11 digits starting with 0).']
-                    ]
-                ], 422);
-            }
+       if ($phoneNumber) {
+    // Remove spaces only
+    $phoneNumber = str_replace(' ', '', $phoneNumber);
+
+    // Remove leading "+"
+    $phoneNumber = ltrim($phoneNumber, '+');
+
+    // If it starts with country code 234, strip it
+    if (strpos($phoneNumber, '234') === 0) {
+        $phoneNumber = substr($phoneNumber, 3);
+    }
+
+    // Ensure it starts with 0
+    if (strpos($phoneNumber, '0') !== 0) {
+        $phoneNumber = '0' . $phoneNumber;
+    }
+
+    // Validate final number
+    if (strlen($phoneNumber) !== 11 || !ctype_digit($phoneNumber)) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid phone number format. Please provide a valid Nigerian phone number.',
+            'errors' => [
+                'phoneNumber' => ['The phone number must be a valid Nigerian number (11 digits starting with 0).']
+            ]
+        ], 422);
+    }
+
         } else {
             return response()->json([
                 'status' => 'error',
