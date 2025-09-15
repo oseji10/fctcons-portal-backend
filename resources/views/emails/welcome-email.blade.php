@@ -456,10 +456,7 @@
                         <p>Welcome to the FCT College of Nursing Sciences (FCTCONS) Portal.</p>
                         <p>We are excited to have you on board.</p>
                         <p>Kindly use the credentials below to log in to your account and begin your application process:</p>
-                        <p>If you have any questions or need assistance, please contact us at <a href="mailto:{{$support_email}}">{{$support_email}}</a>.</p>
-                        <p>Thank you for choosing FCTCONS!</p>
-                        <!-- Action -->
-                        <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                             <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                           <tr>
                             <td align="center">
                               <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
@@ -473,6 +470,10 @@
                             </td>
                           </tr>
                         </table>
+                        <p>If you have any questions or need assistance, please contact us at <a href="mailto:{{$support_email}}">{{$support_email}}</a>.</p>
+                        <p>Thank you for choosing FCTCONS!</p>
+                        <!-- Action -->
+                   
 <!
 
                       </div>

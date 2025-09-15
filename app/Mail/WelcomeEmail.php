@@ -48,10 +48,10 @@ class WelcomeEmail extends Mailable implements ShouldQueue
                         
                         'password' => $this->password,
                         // 'languageId' => $this->languageId,
-                        'action_url' => "https://fctson.abj.gov.ng",
+                        'action_url' => "https://consap.fcthhss.abj.gov.ng",
                         // 'login_url' => "https://nchf.resilience.ng/login",
                         
-                        'support_email' => "info@fctson.abj.gov.ng",
+                        'support_email' => "support.consap@fcthhss.abj.gov.ng",
                     ]);
     }
 }
