@@ -77,12 +77,15 @@ public function store(Request $request)
         'otherNames'  => 'nullable|string|max:255',
         'phoneNumber' => 'nullable|string|max:20',
         'email'       => 'nullable|email|max:255|unique:users,email',
+        'password' => 'nullable|string|min:6',
         'roleId'      => 'required|exists:roles,roleId',
     ]);
 
     // 2. Generate default password
     $default_password = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
-
+    if ($request->filled('password')) {
+        $default_password = $request->input('password');
+    }
     // 3. Create user
     $user = User::create([
         'firstName'   => $validatedData['firstName'],
