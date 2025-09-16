@@ -237,7 +237,7 @@ class ApplicationController extends Controller
  public function mySlips(Request $request)
     {
         $loggedInUser = auth()->user()->id;
-        $application = Applications::with('users')
+        $application = Applications::with('users', 'jamb')
         ->where('userId', $loggedInUser)
         ->where('status', 'payment_completed')
         ->first();
