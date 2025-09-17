@@ -491,21 +491,38 @@ public function printAttendance(Request $request)
 }
 
 
-  public function candidates_gender(Request $request)
+public function candidates_gender(Request $request)
 {
-    $results = Applications::with('jamb:jambId,gender')
-    ->where('status', 'payment_completed')  // eager load only the fields needed
+    $results = Applications::with(['jamb' => function($q) {
+            $q->select('jambId', 'gender');
+        }])
+        ->where('status', 'payment_completed')
         ->get()
-        ->groupBy(fn($app) => $app->jamb->gender ?? 'N/A')
-        ->map(fn($group) => [
-            'gender' => $group->first()->jamb->gender ?? 'N/A',
+        ->groupBy(function ($app) {
+            // Handle missing jamb relation
+            $gender = $app->jamb->gender ?? null;
+
+            if (!$gender) {
+                return 'N/A';
+            }
+
+            // Trim spaces & normalize case
+            $gender = strtoupper(trim($gender));
+
+            // Accept only M / F, else mark N/A
+            return in_array($gender, ['M', 'F']) ? $gender : 'N/A';
+        })
+        ->map(fn($group, $gender) => [
+            'gender' => $gender,
             'total_candidates' => $group->count(),
         ])
         ->sortByDesc('total_candidates')
-        ->values(); // reset array keys
+        ->values();
 
     return response()->json($results);
 }
+
+
 
 
 
