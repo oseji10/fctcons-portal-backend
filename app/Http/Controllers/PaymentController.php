@@ -14,6 +14,8 @@ use App\Models\BatchCandidates;
 use App\Models\PaymentSetting;
 use Illuminate\Support\Str;
 use DB;
+use Illuminate\Support\Facades\Auth;
+
 class PaymentController extends Controller
 {
       public function index(Request $request)
@@ -66,7 +68,6 @@ class PaymentController extends Controller
             // Fetch payment amount (e.g., from database or config)
             $amount_query = PaymentSetting::where('applicationType', $application->applicationType)->first();
             $amount = $amount_query->amount;
-            // $amount = config('payment.amount', 1000); // Fallback to 5000 if not set
 
             // Generate unique orderId
             $orderId = Str::uuid()->toString();
@@ -212,6 +213,8 @@ class PaymentController extends Controller
 
    public function verify(Request $request)
 {
+    $user = Auth::user();
+
     $request->validate([
         'rrr' => 'required|string',
         'applicationId' => 'required|exists:applications,applicationId',
@@ -220,7 +223,13 @@ class PaymentController extends Controller
     $rrr = $request->rrr;
     $applicationId = $request->applicationId;
 
-    $payment = Payment::where('rrr', $rrr)->first();
+    // $payment = Payment::where('rrr', $rrr)->first();
+    $payment = Payment::where('rrr', $rrr)
+    ->where('applicationId', $applicationId)
+    ->where('userId', $user->id)
+    ->lockForUpdate()
+    ->first();
+
     if (!$payment) {
         return response()->json([
             'status' => 'error',
@@ -244,23 +253,28 @@ class PaymentController extends Controller
         ])->get($remitaUrl . '/' . $merchantId . '/' . $rrr . '/' . $apiHash . '/status.reg');
 
         $responseData = $response->json();
-
+        Log::info('Remita verification response', ['response' => $responseData]);
         if ($response->successful() && isset($responseData['status']) && $responseData['status'] === '00') {
             $payment->update([
                 'status' => 'payment_completed',
                 'channel' => $responseData['channel'] ?? null,
                 'paymentDate' => now(),
             ]);
-    $applicant = Applications::where('applicationId', $applicationId)->first(); // or Application::...
+    // $applicant = Applications::where('applicationId', $applicationId)->first(); 
+    $applicant = Applications::where('applicationId', $applicationId)
+    ->where('userId', $user->id)->first(); 
      $applicant->update(['status' => 'payment_completed']);
-    $this->assignBatchToCandidate($applicant);
+     $retrieveToBatch = Applications::where('applicationId', $applicationId)->where('userId', $user->id)->where('status', 'payment_completed')->first();
+    
+    //  $this->assignBatchToCandidate($applicant);
+     $this->assignBatchToCandidate($retrieveToBatch);
     BatchedCandidates::updateOrCreate(
     [
-        'applicationId' => $applicant->applicationId,
+        'applicationId' => $retrieveToBatch->applicationId,
         // 'batchId' => $applicant->batch,
     ],
     [
-        'batchId' => $applicant->batch,
+        'batchId' => $retrieveToBatch->batch,
         'assigned_at' => now(),
     ]
 );
@@ -288,12 +302,12 @@ class PaymentController extends Controller
 
 
 
-private function assignBatchToCandidate(Applications $applicant)
+private function assignBatchToCandidate(Applications $retrieveToBatch)
 {
 
-DB::transaction(function () use ($applicant) {
-    if ($applicant->batch) {
-        return; 
+DB::transaction(function () use ($retrieveToBatch) {
+    if ($retrieveToBatch->batch) {
+        return;
     }
 
     $batches = Batch::orderByRaw("LENGTH(batchId), batchId")->get();
@@ -302,8 +316,8 @@ DB::transaction(function () use ($applicant) {
         $assignedCount = Applications::where('batch', $batch->batchId)->count();
 
         if ($assignedCount < $batch->capacity) {
-            $applicant->batch = $batch->batchId;
-            $applicant->save();
+            $retrieveToBatch->batch = $batch->batchId;
+            $retrieveToBatch->save();
 
            
 
@@ -317,12 +331,12 @@ DB::transaction(function () use ($applicant) {
 }
 
  
-public function logBatchInfo (Applications $applicant) {
-$batch = $applicant->batch->batchId;
-            BatchedCandidates::create([
-                'applicationId' => $applicant->applicationId,
-                'batchId' => $batch->batchId,
-            ]);
+public function logBatchInfo (Applications $retrieveToBatch) {
+    $batch = $retrieveToBatch->batch->batchId;
+    BatchedCandidates::create([
+        'applicationId' => $retrieveToBatch->applicationId,
+        'batchId' => $batch->batchId,
+    ]);
 
 }
 

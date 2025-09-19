@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CancerController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BeneficiariesController;
 use App\Http\Controllers\HospitalController;
 use App\Http\Controllers\LgaController;
@@ -47,6 +47,8 @@ use App\Http\Controllers\HallController;
 
     Route::post('/verify-jamb', [JAMBController::class, 'verifyJAMB']);
     Route::get('/jamb', [JAMBController::class, 'index']);
+
+    Route::get('/announcement', [AnnouncementController::class, 'index']);
 
 
     // Protected routes with JWT authentication
