@@ -368,7 +368,7 @@ public function logBatchInfo (Applications $retrieveToBatch) {
 
     // All Payments
     public function all_payments(){
-        $all_payments = Payment::with('users')->limit('10')->get();
+        $all_payments = Payment::with('users')->limit('10')->orderBy('updated_at', 'desc')->get();
         return response()->json($all_payments);
     }
 
