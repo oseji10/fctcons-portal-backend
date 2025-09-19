@@ -50,11 +50,7 @@ class PaymentController extends Controller
     public function initiatePayment(Request $request)
     {
         try {
-            // Log authentication details for debugging
-            // Log::info('Initiate payment request received', [
-            //     'headers' => $request->headers->all(),
-            //     'cookies' => $request->cookies->all(),
-            // ]);
+         
 
             // Validate request
             $request->validate([
@@ -64,6 +60,20 @@ class PaymentController extends Controller
             // Fetch application and user details
             $application = Applications::findOrFail($request->applicationId);
             $user = User::findOrFail($application->userId);
+
+            // Check if payment already exists for this application
+        $existingPayment = Payment::where('applicationId', $application->applicationId)->first();
+
+        if ($existingPayment) {
+         
+            return response()->json([
+                'status' => 'info',
+                'message' => 'Payment has already been initiated for this application.',
+                'rrr' => $existingPayment->rrr,
+                'amount' => $existingPayment->amount,
+                'paymentStatus' => $existingPayment->status,
+            ], 200);
+        }
 
             // Fetch payment amount (e.g., from database or config)
             $amount_query = PaymentSetting::where('applicationType', $application->applicationType)->first();
