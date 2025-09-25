@@ -241,9 +241,16 @@
       </div>
         </td>
         <td style="text-align: right; font-size: 14px;">
-             <div class="photo-placeholder">
-        <img src="{{ $passport }}" alt="Candidate Photo">
-      </div>
+      <div class="photo-placeholder">
+  @if($passport)
+    <img src="{{ $passport }}" alt="Candidate Photo">
+  @else
+    <span style="display:block; text-align:center; font-size:12px; color:#666; padding-top:65px;">
+      No Photo
+    </span>
+  @endif
+</div>
+
         </td>
       </tr>
     </table>

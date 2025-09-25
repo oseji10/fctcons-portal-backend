@@ -18,20 +18,6 @@ class PDFController extends Controller
         // Fetch application data with batch information
         $application = Applications::with(['olevelresults', 'batch_relation', 'users', 'jamb', 'application_type'])->findOrFail($applicationId);
 
-        // Generate QR code as base64 image
-        // $verificationUrl = url("/verify-slip/{$applicationId}");
-        // $qrCode = base64_encode(QrCode::format('png')->size(150)->generate($verificationUrl));
-      // Configure QR code to use GD renderer
-        // $renderer = new ImageRenderer(
-        //     new RendererStyle(150),
-        //     new GdImageBackend() // Updated to GdImageBackend for BaconQrCode 3.x
-        // );
-        // try {
-        //     $qrCode = base64_encode(QrCode::format('png')->renderer($renderer)->generate(url("/verify-slip/{$applicationId}")));
-        // } catch (\Exception $e) {
-        //     \Log::error('QR Code Generation Failed: ' . $e->getMessage());
-        //     throw new \Exception('Failed to generate QR code: ' . $e->getMessage());
-        // }
 
 $qrContent = route('verify.slip', ['applicationId' => $application->applicationId]);
 
@@ -67,8 +53,7 @@ try {
         }
     }
 } catch (Exception $e) {
-    // Log the error if needed
-    // Log::error("Error processing image: " . $e->getMessage());
+   
     $base64Image2 = null;
 }
         // Prepare data for the PDF
@@ -107,6 +92,7 @@ try {
             ]);
 
         // Return the PDF as a stream for download
+        
         return $pdf->stream('exam-slip-' . $applicationId . '.pdf');
     }
 }
