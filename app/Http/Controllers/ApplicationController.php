@@ -23,7 +23,7 @@ class ApplicationController extends Controller
     public function index2()
     {
         // This method should return a list of applicants
-        $applications = Applications::with(['users'])->get();
+        $applications = Applications::with(['users', 'jamb'])->get();
         if ($applications->isEmpty()) {
             return response()->json(['message' => 'No applicants found'], 404);
         }
@@ -38,7 +38,7 @@ class ApplicationController extends Controller
     $status = $request->query('status');
     $search = $request->query('search');
     
-    $query = Applications::with(['users'])->orderBy('id', 'desc');
+    $query = Applications::with(['users', 'jamb'])->orderBy('id', 'desc');
     
     if ($batch) {
         $query->where('batch', $batch);

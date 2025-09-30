@@ -497,3 +497,7 @@
 #34 C:\\Users\\USER\\Documents\\MyApps\\CONS\\portal\\ncap-backend\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #35 {main}
 "} 
+[2025-09-28 22:44:07] local.WARNING: No access_token cookie found  
+[2025-09-28 22:44:08] local.WARNING: No access_token cookie found  
+[2025-09-30 12:36:31] local.WARNING: No access_token cookie found  
+[2025-09-30 12:36:31] local.WARNING: No access_token cookie found  
