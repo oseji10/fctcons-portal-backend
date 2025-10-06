@@ -165,7 +165,9 @@ foreach ($availableHalls as $hall) {
     $currentOccupancy = HallAssignment::where('hall', $hall->hallId)->count();
     
     if ($currentOccupancy < $hall->capacity) {
-        $nextSeatNumber = $this->generateSeatNumber($hall);
+        // $nextSeatNumber = $this->generateSeatNumber($hall);
+        $nextSeatNumber = $this->generateSeatNumber($hall, $batch->batchId);
+
         
         return [
             'hall' => $hall->hallName,
@@ -177,29 +179,58 @@ foreach ($availableHalls as $hall) {
     throw new \Exception('All halls for this batch are at full capacity');
 }
 
-protected function generateSeatNumber(Halls $hall)
+// protected function generateSeatNumber(Halls $hall)
+// {
+//     if (empty($hall->hallId) || empty($hall->hallName)) {
+//         throw new \InvalidArgumentException('Invalid hall data provided');
+//     }
+
+//     try {
+//         $lastAssignment = HallAssignment::where('hall', $hall->hallId)
+//             ->orderByRaw('CAST(seatNumber AS UNSIGNED) DESC')
+//             ->first();
+
+//         $nextNumber = $lastAssignment ? ((int)$lastAssignment->seatNumber) + 1 : 1;
+
+//         if ($nextNumber <= 0) {
+//             throw new \RuntimeException('Invalid seat number generated');
+//         }
+
+//         return $nextNumber; // No need for sprintf unless you want padded numbers
+//     } catch (\Exception $e) {
+//         \Log::error('Seat number generation failed: ' . $e->getMessage());
+//         return strtoupper(substr($hall->hallName, 0, 3)) . '-001';
+//     }
+// }
+
+protected function generateSeatNumber(Halls $hall, $batchId)
 {
     if (empty($hall->hallId) || empty($hall->hallName)) {
         throw new \InvalidArgumentException('Invalid hall data provided');
     }
 
     try {
+        // Filter by both hall and current active batch
         $lastAssignment = HallAssignment::where('hall', $hall->hallId)
+            ->where('batch', $batchId)
             ->orderByRaw('CAST(seatNumber AS UNSIGNED) DESC')
             ->first();
 
-        $nextNumber = $lastAssignment ? ((int)$lastAssignment->seatNumber) + 1 : 1;
+        // If no assignment for this hall & batch, start from 1
+        $nextNumber = $lastAssignment ? ((int) $lastAssignment->seatNumber) + 1 : 1;
 
         if ($nextNumber <= 0) {
             throw new \RuntimeException('Invalid seat number generated');
         }
 
-        return $nextNumber; // No need for sprintf unless you want padded numbers
+        return $nextNumber;
+
     } catch (\Exception $e) {
         \Log::error('Seat number generation failed: ' . $e->getMessage());
-        return strtoupper(substr($hall->hallName, 0, 3)) . '-001';
+        return 1;
     }
 }
+
 
 
 }
