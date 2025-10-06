@@ -179,32 +179,27 @@ foreach ($availableHalls as $hall) {
 
 protected function generateSeatNumber(Halls $hall)
 {
-    // Validate hall has an ID and name
     if (empty($hall->hallId) || empty($hall->hallName)) {
         throw new \InvalidArgumentException('Invalid hall data provided');
     }
 
     try {
-        // Get last assignment - returns null if no records exist
         $lastAssignment = HallAssignment::where('hall', $hall->hallId)
-                            ->orderBy('seatNumber', 'desc')
-                            ->first();
+            ->orderByRaw('CAST(seatNumber AS UNSIGNED) DESC')
+            ->first();
 
-        // Determine next seat number
         $nextNumber = $lastAssignment ? ((int)$lastAssignment->seatNumber) + 1 : 1;
-        
-        // Validate seat number
+
         if ($nextNumber <= 0) {
             throw new \RuntimeException('Invalid seat number generated');
         }
 
-        return sprintf( $nextNumber);
-
+        return $nextNumber; // No need for sprintf unless you want padded numbers
     } catch (\Exception $e) {
-        // Log error and fallback to default
-        \Log::error('Seat number generation failed: '.$e->getMessage());
+        \Log::error('Seat number generation failed: ' . $e->getMessage());
         return strtoupper(substr($hall->hallName, 0, 3)) . '-001';
     }
 }
+
 
 }
