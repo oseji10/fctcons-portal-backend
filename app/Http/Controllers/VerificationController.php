@@ -9,6 +9,9 @@ use App\Models\Halls;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+   use Illuminate\Support\Facades\DB;
+use Exception;
+
 class VerificationController extends Controller
 {
     public function verifyCandidate($identifier)
@@ -136,48 +139,80 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
     }
 
 
-    protected function assignSeat(Applications $candidate)
+protected function assignSeat(Applications $candidate)
 {
     // 1. Validate candidate has a batch
     if (empty($candidate->batch)) {
         throw new \Exception('Applicant has no batch assigned');
     }
 
-    // 2. Get active batch information
-   $batch = Batch::where('batchId', $candidate->batch)
-            ->where('isVerificationActive', true)
-            ->first();
+    // 2. Confirm this batch is active for verification
+    $batch = Batch::where('batchId', $candidate->batch)
+                ->where('isVerificationActive', true)
+                ->first();
 
-if (!$batch) {
-    throw new \Exception('Applicant not in the active batch. Either rebatch or be sure they are supposed to be in Batch');
-}
-
-    // 3. Get available halls for this batch
-   // Get all active halls
- $availableHalls = Halls::where('isActive', '1')->get();
-
-if ($availableHalls->isEmpty()) {
-    throw new \Exception('No active halls available');
-}
-
-// Find first hall with available capacity
-foreach ($availableHalls as $hall) {
-    $currentOccupancy = HallAssignment::where('hall', $hall->hallId)->count();
-    
-    if ($currentOccupancy < $hall->capacity) {
-        // $nextSeatNumber = $this->generateSeatNumber($hall);
-        $nextSeatNumber = $this->generateSeatNumber($hall, $batch->batchId);
-
-        
-        return [
-            'hall' => $hall->hallName,
-            'seatNumber' => $nextSeatNumber,
-            'hallId' => $hall->hallId
-        ];
+    if (!$batch) {
+        throw new \Exception('Applicant not in the active batch. Either rebatch or be sure they are supposed to be in this active batch.');
     }
-}
+
+    // 3. Get active halls (deterministic order e.g. by hallName)
+    $availableHalls = Halls::where('isActive', 1)
+                        ->orderBy('hallName')
+                        ->get();
+
+    if ($availableHalls->isEmpty()) {
+        throw new \Exception('No active halls available');
+    }
+
+    // 4. Loop halls and try to assign in the first hall that has capacity for THIS batch
+    foreach ($availableHalls as $hall) {
+
+        // occupancy must be for this hall AND this batch (important)
+        $currentOccupancy = HallAssignment::where('hall', $hall->hallId)
+            ->where('batch', $batch->batchId)
+            ->count();
+
+        // if hall is full for this batch, skip to next hall
+        if ($currentOccupancy >= (int) $hall->capacity) {
+            continue;
+        }
+
+        // 5. Use a DB transaction and row locking to avoid race conditions
+        $seatAssignment = DB::transaction(function () use ($hall, $batch) {
+            // Lock rows for this hall+batch
+            // Note: lockForUpdate() will lock matching rows. If there are no rows yet,
+            // it won't lock future inserts — still, transaction + unique index (see notes) helps.
+            $assignments = HallAssignment::where('hall', $hall->hallId)
+                ->where('batch', $batch->batchId)
+                ->lockForUpdate()
+                ->get();
+
+            // Compute the numeric max seat number robustly (handles "001", "HALLA-001", "10", etc.)
+            $maxSeat = 0;
+            foreach ($assignments as $a) {
+                // extract digits only
+                $digits = preg_replace('/\D/', '', (string) $a->seatNumber);
+                $num = $digits === '' ? 0 : (int) $digits;
+                if ($num > $maxSeat) $maxSeat = $num;
+            }
+
+            $nextSeat = $maxSeat + 1;
+
+            // Return structured assignment info
+            return [
+                'hall' => $hall->hallName,
+                'hallId' => $hall->hallId,
+                'seatNumber' => $nextSeat,
+            ];
+        }, 5); // optional retry attempts
+
+        return $seatAssignment;
+    }
+
+    // If loop finishes, no hall had capacity
     throw new \Exception('All halls for this batch are at full capacity');
 }
+
 
 // protected function generateSeatNumber(Halls $hall)
 // {
