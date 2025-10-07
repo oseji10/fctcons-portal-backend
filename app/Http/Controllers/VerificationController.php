@@ -17,7 +17,7 @@ class VerificationController extends Controller
     public function verifyCandidate($identifier)
     {
         try {
-            $candidate = Applications::with('users', 'photograph', 'jamb', 'batch_relation')->where('applicationId', $identifier)
+            $candidate = Applications::with('users', 'photograph', 'jamb', 'batch_relation', 'hall_info', 'hall_assignment')->where('applicationId', $identifier)
                 ->orWhere('jambId', $identifier)
                 ->first();
 
@@ -46,16 +46,16 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
                 'email' => $candidate->users->email,
                 'phoneNumber' => $candidate->users->phoneNumber,
                 'dateOfBirth' => $candidate->dateOfBirth,
-                'gender' => $candidate->gender,
+                'gender' => $candidate->jamb->gender,
                 'batch' => $candidate->batch,
                 'stateOfOrigin' => $candidate->jamb->state ?? null,
-                'gender' => $candidate->gender,
+                // 'gender' => $candidate->gender,
                 // 'passportPhoto' => $candidate->photograph->photoPath ?? null,
                 // 'passportPhoto' => $candidate->photograph->photoPath ? asset('storage/'.$candidate->passport_photo) : null,
                 'passportPhoto' => $base64Image ?? null,
                 'isPresent' => $candidate->isPresent,
-                'hall' => $candidate->hall ?? null,
-                'seatNumber' => $candidate->seatNumber ?? null,
+                'hall' => $candidate->hall_assignment->hall ?? null,
+                'seatNumber' => $candidate->hall_assignment->seatNumber ?? null,
                 'examDate' => $candidate->batch_relation ? $candidate->batch_relation->examDate : null,
                 'examTime' => $candidate->batch_relation ? $candidate->batch_relation->examTime : null,
             ]);
@@ -73,7 +73,7 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
             'isPresent' => 'required|boolean',
         ]);
 
-        $candidate = Applications::with('users', 'photograph')->where('applicationId', $request->applicationId)->first();
+        $candidate = Applications::with('users', 'photograph', 'hall_assignment', 'jamb', 'batch_relation')->where('applicationId', $request->applicationId)->first();
 
  
                 $imagePath = $candidate->photograph && $candidate->photograph->photoPath
@@ -107,6 +107,9 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
                     'hall' => $seatAssignment['hallId'],
                     'seatNumber' => $seatAssignment['seatNumber'],
                 ]);
+                // Reload the candidate with updated relations
+$candidate->load('users', 'photograph', 'hall_assignment', 'jamb', 'batch_relation');
+
             } else {
                 $candidate->update(['isPresent' => $request->isPresent]);
             }
@@ -122,14 +125,17 @@ $base64Image = 'data:image/' . $imageType . ';base64,' . $imageData;
                 'email' => $candidate->users->email,
                 'phoneNumber' => $candidate->users->phoneNumber,
                 'dateOfBirth' => $candidate->dateOfBirth,
-                'gender' => $candidate->gender,
+                'gender' => $candidate->jamb->gender,
                 'batch' => $candidate->batch,
                 // 'passportPhoto' => $candidate->photograph->photoPath ?? null,
                 // 'passportPhoto' => $candidate->photograph->photoPath ? asset('storage/'.$candidate->passport_photo) : null,
                 'passportPhoto' => $base64Image,
                 'isPresent' => $candidate->isPresent,
-                'hall' => $candidate->hall_info->hallName,
-                'seatNumber' => $candidate->seatNumber,
+                'hall' => $candidate->hall_assignment->hall ?? null,
+                'seatNumber' => $candidate->hall_assignment->seatNumber ?? null,
+                'stateOfOrigin' => $candidate->jamb->state ?? null,
+                'examDate' => $candidate->batch_relation ? $candidate->batch_relation->examDate : null,
+                'examTime' => $candidate->batch_relation ? $candidate->batch_relation->examTime : null,
             ]);
 
         } catch (\Exception $e) {

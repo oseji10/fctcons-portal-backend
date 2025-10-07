@@ -16,6 +16,7 @@ use App\Models\Payment;
 use App\Models\BatchedCandidates;
 use App\Models\ReBatchedCandidates;
 use App\Models\ReBatchedCandidatesHistory;
+use App\Models\HallAssignment;
 use PDF;
 use DB;
 class ApplicationController extends Controller
@@ -381,8 +382,9 @@ public function rebatched_candidates(Request $request)
     $batch = $request->query('batch');
     $hall = $request->query('hall');
     
-    $query = Applications::with(['users'])->orderBy('id', 'desc');
-    
+    // $query = Applications::with(['users'])->orderBy('id', 'desc');
+    $query = HallAssignment::with(['applications.users'])->orderBy('id', 'desc');
+
     if ($batch) {
         $query->where('batch', $batch);
     }
@@ -415,11 +417,13 @@ public function printAttendance(Request $request)
         $hall = $request->hall;
 
         // Get attendance records with user information
-        $records = Applications::with('users')
-            ->where('batch', $batch)
-            ->where('hall', $hall)
-            ->orderBy('seatNumber')
-            ->get();
+        // $records = Applications::with('users')
+       $records = HallAssignment::with('applications.users')
+    ->where('batch', $batch)
+    ->where('hall', $hall)
+    ->orderByRaw('CAST(seatNumber AS UNSIGNED) ASC')
+    ->get();
+
 
         // Get batch and hall details (you may need to adjust based on your models)
         $batchDetails = Batch::where('batchId', $batch)->first();
@@ -523,7 +527,21 @@ public function candidates_gender(Request $request)
 }
 
 
+// Total candidates verified
+public function verified_candidates(Request $request)
+{
+    $userId = auth()->id();
 
+    $results = HallAssignment::select(
+            'batch',
+            DB::raw('COUNT(applicationId) as total_candidates'),
+            DB::raw("SUM(CASE WHEN verifiedBy = {$userId} THEN 1 ELSE 0 END) as verified_by_user")
+        )
+        ->groupBy('batch')
+        ->get();
+
+    return response()->json($results);
+}
 
 
 }

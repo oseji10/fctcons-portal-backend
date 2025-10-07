@@ -73,4 +73,9 @@ class Applications extends Model
     {
         return $this->belongsTo(Halls::class, 'hall', 'hallId');
     } 
+
+    public function hall_assignment()
+    {
+        return $this->hasOne(HallAssignment::class, 'applicationId', 'applicationId');
+    } 
 }

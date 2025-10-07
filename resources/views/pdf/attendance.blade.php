@@ -84,13 +84,13 @@
     <table>
         <thead>
             <tr>
-                <th width="5%">S/N</th>
+                <!-- <th width="5%">S/N</th> -->
+                <th width="5%">Seat Number</th>
                 <th width="15%">Application ID</th>
                 <th width="20%">Candidate Name</th>
                 <th width="10%">JAMB ID</th>
                 <th width="10%">Phone Number</th>
                 <th width="10%">Alt. Phone No.</th>
-                <th width="5%">Seat No.</th>
                 <th width="15%">Signature</th>
                 <!-- <th width="15%">Invigilator's Initial</th>
                 <th width="15%">Remarks</th>
@@ -99,13 +99,13 @@
         <tbody>
             @foreach($records as $index => $record)
             <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>{{ $record->applicationId }}</td>
-                <td>{{ $record->users->firstName }} {{ $record->users->lastName }}</td>
-                <td>{{ $record->jambId }}</td>
-                <td>{{ $record->users->phoneNumber }}</td>
-                <td></td>
+                <!-- <td>{{ $index + 1 }}</td> -->
                 <td>{{ $record->seatNumber }}</td>
+                <td>{{ $record->applicationId }}</td>
+                <td>{{ $record->applications->users->firstName }} {{ $record->applications->users->lastName }}</td>
+                <td>{{ $record->applications->jambId }}</td>
+                <td>{{ $record->applications->users->phoneNumber }}</td>
+                <td></td>
                 <td>
                     <div class="signature"></div>
                 </td>

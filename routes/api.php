@@ -124,6 +124,7 @@ use App\Http\Controllers\HallController;
 Route::get('/candidates_states', [ApplicationController::class, 'candidates_states']);
 Route::get('/candidates_gender', [ApplicationController::class, 'candidates_gender']);
 Route::get('/batched_candidates', [ApplicationController::class, 'batched_candidates']);
+Route::get('/verified_candidates', [ApplicationController::class, 'verified_candidates']);
 });
 
 Route::get('/application/slip/{applicationId}', [PDFController::class, 'generateExamSlip']);

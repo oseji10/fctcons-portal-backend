@@ -14,5 +14,10 @@ class HallAssignment extends Model
         'seatNumber',
         'verifiedBy',
     ];
+
+    public function applications()
+    {
+        return $this->belongsTo(Applications::class, 'applicationId', 'applicationId');
+    }
     
 }
