@@ -12,7 +12,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\MinistryController;
-use App\Http\Controllers\CadreController;
+use App\Http\Controllers\AdmissionsController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\PaymentController;
@@ -49,8 +49,7 @@ use App\Http\Controllers\HallController;
     Route::get('/jamb', [JAMBController::class, 'index']);
 
     Route::get('/announcement', [AnnouncementController::class, 'index']);
-
-
+   
     // Protected routes with JWT authentication
     Route::middleware(['auth.jwt'])->group(function () {
         Route::get('/user', function () {
@@ -84,6 +83,10 @@ use App\Http\Controllers\HallController;
     Route::put('/application/{applicationId}/change-batch', [ApplicationController::class, 'changeBatch']);
     Route::get('/attendance', [ApplicationController::class, 'attendance']);
     // Route::post('/attendance/print', [ApplicationController::class, 'printAttendance'])->name('attendance.print');
+
+    Route::get('/admission-status', [AdmissionsController::class, 'status']);
+     Route::get('/admission-letter/{applicationId}', [AdmissionsController::class, 'showAdmissionLetter'])->name('admission.letter');
+
 
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');

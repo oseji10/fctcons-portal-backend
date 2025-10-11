@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-    Schema::create('announcements', function (Blueprint $table) {
-    $table->id();
-    $table->string('announcementId')->nullable();
-    $table->string('title')->nullable();
-    $table->string('message')->nullable();
-    $table->string('status')->nullable();
-    $table->timestamps();
+//     public function up(): void
+//     {
+//     Schema::create('announcements', function (Blueprint $table) {
+//     $table->id();
+//     $table->string('announcementId')->nullable();
+//     $table->string('title')->nullable();
+//     $table->string('message')->nullable();
+//     $table->string('status')->nullable();
+//     $table->timestamps();
 
-});
+// });
 
 
-}
+// }
     /**
      * Reverse the migrations.
      */
