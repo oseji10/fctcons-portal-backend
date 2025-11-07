@@ -6,10 +6,23 @@ use Illuminate\Http\Request;
 use App\Models\Admissions;
 use App\Models\AdmissionSettings;
 use App\Models\Applications;
+use App\Models\Programmes;
+use App\Models\AcademicSession;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use PDF;
 class AdmissionsController extends Controller{
+
+    public function index(){
+        // $loggedInUser = auth()->user()->id;
+        $admissions = Admissions::with(['application.jamb', 'programme', 'session_details', 'admission_setting'])
+        ->get();
+        if (!$admissions || $admissions->isEmpty()) {
+            return response()->json(['message' => 'No admissions found']);
+        }
+        return response()->json($admissions);
+    }
+
 public function showAdmissionLetter($applicationId)
 {
      $imagePath = storage_path('app/public/images/cons_logo.png');
@@ -56,6 +69,8 @@ public function showAdmissionLetter($applicationId)
         'registrar_name' => 'Mrs. Doguje',
         'school_address' => 'University of Abuja Teaching Hospital, Gwagwalada, Abuja',
         'registrar_phone' => '+234 123 456 7890',
+        'application_number' => $application->applicationId,
+        'forfeiture_date' => $admission->admission_setting ? date('F d, Y', strtotime($admission->admission_setting->resumptionDate . ' +14 days')) : 'N/A',
     ];
 
     // return view('pdf.admission-letter', $data);
@@ -118,5 +133,74 @@ public function status(){
         'admissionDate' => $admission->created_at->toDateString(),
         'message' => 'Admission record found',
     ]);
+}
+
+public function programmes(){
+    $programmes = Programmes::all();
+    return response()->json($programmes);
+
+}
+
+public function sessions(){
+    $sessions = AcademicSession::all();
+    return response()->json($sessions);
+
+}
+
+public function bulkUpload(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'file' => 'required|mimes:xlsx,xls,csv',
+        'programme_id' => 'required|integer|exists:programmes,programmeId',
+        'session_id' => 'required|integer|exists:academic_sessions,sessionId',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    $file = $request->file('file');
+
+    try {
+        $data = \Excel::toArray([], $file)[0];
+
+        if (empty($data)) {
+            return response()->json(['message' => 'The uploaded file is empty.'], 400);
+        }
+
+        $createdCount = 0;
+        $skippedCount = 0;
+
+        // Skip the header row
+        $rows = array_slice($data, 1);
+
+        foreach ($rows as $row) {
+            if (empty($row[0])) {
+                $skippedCount++;
+                continue;
+            }
+
+            $applicationId = trim($row[0]);
+
+            if (Admissions::where('applicationId', $applicationId)->exists()) {
+                $skippedCount++;
+                continue;
+            }
+
+            Admissions::create([
+                'applicationId' => $applicationId,
+                'programmeId' => $request->input('programme_id'),
+                'session' => $request->input('session_id'),
+            ]);
+
+            $createdCount++;
+        }
+
+        $message = "Bulk upload completed. Created: {$createdCount}, Skipped (existing): {$skippedCount}";
+
+        return response()->json(['message' => $message]);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'An error occurred during bulk upload.', 'error' => $e->getMessage()], 500);
+    }
 }
 }

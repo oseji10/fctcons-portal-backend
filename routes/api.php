@@ -86,7 +86,11 @@ use App\Http\Controllers\HallController;
 
     Route::get('/admission-status', [AdmissionsController::class, 'status']);
      Route::get('/admission-letter/{applicationId}', [AdmissionsController::class, 'showAdmissionLetter'])->name('admission.letter');
-
+     Route::get('/admissions', [AdmissionsController::class, 'index']);
+     Route::post('/admissions/bulk-upload', [AdmissionsController::class, 'bulkUpload']);
+     Route::get('/admission/programmes', [AdmissionsController::class, 'programmes']);
+     Route::get('/admission/sessions', [AdmissionsController::class, 'sessions']);
+    
 
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->middleware('auth.jwt');
     Route::post('/payment/verify', [PaymentController::class, 'verify'])->middleware('auth.jwt');
@@ -136,4 +140,3 @@ Route::get('analytics/total-users', [AnalyticsController::class, 'getTotalBenefi
 Route::options('{any}', function () {
     return response()->json([], 200);
 })->where('any', '.*');
-
