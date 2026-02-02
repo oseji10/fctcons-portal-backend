@@ -355,7 +355,7 @@ public function logBatchInfo (Applications $retrieveToBatch) {
     {
         $loggedInUser = auth()->user()->id;
         $payments = Payment::
-        // with('users')
+        with('payment_for')->
         where('userId', $loggedInUser)
         // ->where('status', 'payment_completed')
         ->first();

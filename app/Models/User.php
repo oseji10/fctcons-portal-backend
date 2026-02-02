@@ -27,8 +27,10 @@ class User extends Authenticatable implements JWTSubject
         'lastName',
         'otherNames',
         'password', 
-        'applicationType',
-        'jambId',
+        
+        'otp_code',
+        'otp_expires_at',
+        'email_verified_at',
     ];
     protected $dates = ['deleted_at'];
     protected $hidden = ['password'];
@@ -52,25 +54,19 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Role::class, 'role', 'roleId'); 
     }
 
-    public function hospital_admins()
+
+    public function properties()
     {
-        return $this->belongsTo(HospitalStaff::class, 'id', 'userId'); 
+        return $this->hasMany(Property::class);
     }
 
-    public function patient()
+    public function lands()
     {
-        return $this->belongsTo(Patient::class, 'userId', 'id'); 
+        return $this->hasMany(Land::class);
     }
 
-      public function applications()
+    public function transactions()
     {
-        return $this->belongsTo(Applications::class, 'userId', 'id');
+        return $this->hasMany(Transaction::class);
     }
-     
-
-      public function application_type()
-    {
-        return $this->belongsTo(ApplicationType::class, 'applicationType', 'typeId');
-    }
-
 }

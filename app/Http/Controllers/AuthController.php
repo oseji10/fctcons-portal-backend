@@ -17,6 +17,8 @@ use Tymon\JWTAuth\JWTAuth;
 use App\Models\RefreshToken;    
 use Carbon\Carbon;
 
+use App\Mail\OtpEmail;
+
 use Tymon\JWTAuth\Exceptions\JWTException; // Uncomment if using JWTException
 
 
@@ -170,155 +172,81 @@ class AuthController extends Controller
     }
 
 
-
-public function register(Request $request)
-{
-    // Set default password
-    $default_password = strtoupper(Str::random(2)) . mt_rand(1000000000, 9999999999);
-
-    // Create user
-    $user = User::create([
-        'firstName' => $request->firstName,
-        'lastName' => $request->lastName,
-        'phoneNumber' => $request->phoneNumber,
-        'otherNames' => $request->otherNames,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => $request->role,
-        'jambId' => $request->jambId
-    ]);
-
-    Log::info('User created:', ['email' => $user->email]);
-
-    // Send email
-    try {
-        Mail::to($user->email)->send(new WelcomeEmail($user->firstName, $user->lastName, $user->email, $default_password));
-        Log::info('Email sent successfully to ' . $user->email);
-    } catch (\Exception $e) {
-        Log::error('Email sending failed: ' . $e->getMessage());
-    }
-
-    // Return response
-    return response()->json([
-        'message' => "User successfully created",
-        'password' => $default_password,
-    ]);
-}
-public function candidateRegister(Request $request)
+       public function signup(Request $request)
 {
     try {
+    
         // Validate request data
-        $messages = [
-            'email.unique' => 'The email address is already in use.',
-            'jambId.unique' => 'The JAMB ID is already in use.',
-        ];
-
-        // Validate request data with custom messages
         $validated = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'phoneNumber' => 'nullable|string|max:20', // Increased max length and removed regex validation
-            'otherNames' => 'nullable|string|max:255',
+            'fullName' => 'nullable|string|max:255',
+            'phoneNumber' => 'nullable|string|unique:users,phoneNumber|max:14|regex:/^\+?\d{10,15}$/',
             'email' => 'required|email|unique:users,email|max:255',
-            'password' => 'required|string|min:6',
-            'applicationType' => 'required|string|exists:application_types,typeId',
-            'jambId' => 'nullable|string|unique:users,jambId|max:255',
-        ], $messages);
-
-        // Format phone number: remove country code, spaces, and ensure it starts with 0
-        $phoneNumber = $validated['phoneNumber'] ?? null;
-        if ($phoneNumber) {
-            // Remove spaces only
-            $phoneNumber = str_replace(' ', '', $phoneNumber);
-
-            // Remove leading "+"
-            $phoneNumber = ltrim($phoneNumber, '+');
-
-            // If it starts with country code 234, strip it
-            if (strpos($phoneNumber, '234') === 0) {
-                $phoneNumber = substr($phoneNumber, 3);
-            }
-
-            // Ensure it starts with 0
-            if (strpos($phoneNumber, '0') !== 0) {
-                $phoneNumber = '0' . $phoneNumber;
-            }
-
-            // Validate final number
-            if (strlen($phoneNumber) !== 11 || !ctype_digit($phoneNumber)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Invalid phone number format. Please provide a valid Nigerian phone number.',
-                    'errors' => [
-                        'phoneNumber' => ['The phone number must be a valid Nigerian number (11 digits starting with 0).']
-                    ]
-                ], 422);
-            }
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Phone number is required.',
-                'errors' => [
-                    'phoneNumber' => ['The phone number field is required.']
-                ]
-            ], 422);
-        }
-
-        // Convert jambId to uppercase if it exists
-        $jambId = $validated['jambId'] ? strtoupper($validated['jambId']) : null;
-
-        // Generate applicationId based on applicationType
-        $prefix = match ($validated['applicationType']) {
-            "1" => 'NDN25',
-            "2" => 'BMW25',
-            "3" => 'PBN25',
-            default => throw new \Exception('Invalid application type'),
-        };
-        $randomDigits = str_pad(mt_rand(0, 9999999), 7, '0', STR_PAD_LEFT);
-        $applicationId = $prefix . $randomDigits;
-
-        // Create user
-        $user = User::create([
-            'firstName' => $validated['firstName'],
-            'lastName' => $validated['lastName'],
-            'phoneNumber' => $phoneNumber, // Use the formatted phone number
-            'otherNames' => $validated['otherNames'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'applicationType' => $validated['applicationType'],
-            'role' => 1, // Hardcoded role for candidate
-            'jambId' => $jambId, // Use the uppercase jambId
+            'role' => 'required|exists:roles,roleId',
         ]);
 
-        // Create application
-        $application = Applications::create([
-            'userId' => $user->id,
-            'applicationId' => $applicationId,
-            'applicationType' => $validated['applicationType'],
-            'jambId' => $jambId, // Use the uppercase jambId
-            'status' => 'not_submitted'
-        ]);
+        // Generate OTP (6 digits)
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otpExpiresAt = now()->addMinutes(10); // OTP valid for 10 minutes
 
+        // Generate a temporary password (you can keep this or remove it)
+        $tempPassword = strtoupper(Str::random(8));
+
+        // Create user with OTP fields
+        // Assuming Laravel controller method
+
+
+
+// Break down fullName into firstName, lastName, and otherNames
+$fullName = trim($validated['fullName']);
+$nameParts = preg_split('/\s+/', $fullName); // Split by whitespace
+
+$firstName = $nameParts[0] ?? '';
+$lastName = count($nameParts) > 1 ? array_pop($nameParts) : ''; // Last word as lastName
+$otherNames = count($nameParts) > 1 ? implode(' ', $nameParts) : ''; // Everything in between
+
+// Fallback if only one name
+if (empty($lastName)) {
+    $lastName = $firstName;
+    $firstName = '';
+    $otherNames = '';
+}
+
+
+// Create the user
+$user = User::create([
+    'firstName' => $firstName,
+    'lastName' => $lastName,
+    'otherNames' => $otherNames,
+    'phoneNumber' => $validated['phoneNumber'],
+    'email' => $validated['email'],
+    'password' => Hash::make($validated['password'] ?? 'default_temp_password'), // Use sent password or fallback
+    'role' => $validated['role'],
+    'currentPlan' => 1,
+    'otp_code' => $otp, // Assume $otp and $otpExpiresAt are generated earlier
+    'otp_expires_at' => $otpExpiresAt,
+    'email_verified_at' => null,
+]);
+
+
+   
         Log::info('User created:', ['email' => $user->email]);
 
-        // Send welcome email
+        // Send OTP email instead of welcome email
         try {
-            Mail::to($user->email)->send(new WelcomeEmail(
-                $user->email,
+            Mail::to($user->email)->send(new OtpEmail(
                 $user->firstName,
                 $user->lastName,
-                $request->password // Consider removing this for security
+                $otp
             ));
-            Log::info('Email sent successfully to ' . $user->email);
+            Log::info('OTP email sent successfully to ' . $user->email);
         } catch (\Exception $e) {
-            Log::error('Email sending failed: ' . $e->getMessage());
-            // Note: Not failing the request due to email error
+            Log::error('OTP email sending failed: ' . $e->getMessage());
+            
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Registration successful! Please check your email for a welcome message.',
-            // 'applicationId' => $applicationId,
+            'message' => 'Signup successful! Please check your email for the verification code.',
         ], 201);
 
     } catch (ValidationException $e) {
@@ -331,10 +259,12 @@ public function candidateRegister(Request $request)
         Log::error('Registration failed: ' . $e->getMessage());
         return response()->json([
             'status' => 'error',
-            'message' => 'Registration failed due to an unexpected error. Please try again later.',
+            'message' => 'Signup failed due to an unexpected error. Please try again later.',
         ], 500);
     }
 }
+
+
     public function changePassword(Request $request)
 {
     // Validate input
@@ -397,5 +327,111 @@ public function updateProfile(Request $request)
         'data' => $user,
     ], 200); // HTTP status code 200: OK
 }
+
+
+
+
+public function setupPassword(Request $request)
+{
+    try {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        // Find user
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        // Check if email is verified
+        if (!$user->email_verified_at) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email not verified. Please verify your email first.',
+            ], 400);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->password),
+            'status' => 'active', // Activate the user
+        ]);
+
+        // Clear OTP data
+        $user->update([
+            'otp_code' => null,
+            'otp_expires_at' => null,
+        ]);
+
+        // Send welcome email
+        try {
+            $this->sendWelcomeEmail($user);
+        } catch (\Exception $e) {
+            Log::error('Welcome email failed to send: ' . $e->getMessage());
+            // Continue execution - don't fail the password setup if email fails
+        }
+
+        Log::info('Password setup completed for user:', ['email' => $user->email]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Password set successfully. Welcome email sent.',
+        ]);
+
+    } catch (ValidationException $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Validation failed.',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Password setup failed: ' . $e->getMessage());
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Password setup failed. Please try again.',
+        ], 500);
+    }
+}
+
+/**
+ * Send welcome email to user
+ */
+private function sendWelcomeEmail(User $user)
+{
+    // Option 1: Using Laravel Mailable
+    Mail::to($user->email)->send(new WelcomeEmail($user));
+
+   
+}
+
+    // public function changePassword(Request $request)
+    // {
+    //     // Validate input
+    //     $request->validate([
+    //         'currentPassword' => 'required',
+    //         'newPassword' => 'required|min:6', // 'confirmed' ensures newPassword_confirmation is also sent
+    //     ]);
+
+    //     $user = Auth::user();
+
+    //     // Check if the current password matches
+    //     if (!Hash::check($request->currentPassword, $user->password)) {
+    //         return response()->json(['message' => 'Current password is incorrect.'], 422);
+    //     }
+
+
+    //     // Update the user's password
+    //     $user->password = Hash::make($request->newPassword);
+    //     $user->save();
+
+    //     return response()->json(['message' => 'Password changed successfully.']);
+    // }
+
     
 }

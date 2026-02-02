@@ -21,4 +21,11 @@ class Payment extends Model
     {
         return $this->belongsTo(Applications::class, 'applicationId', 'applicationId'); 
     }
+
+   
+
+      public function payment_for()
+    {
+        return $this->belongsTo(PaymentType::class, 'paymentFor', 'paymentTypeId'); 
+    }
 }

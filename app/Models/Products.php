@@ -9,31 +9,25 @@ class Products extends Model
 {
     use HasFactory;
 
-    public $table = 'products';
+    public $table = 'lands';
     protected $fillable = [
-        'productId',
-        'productName',
-        'productType',
-        'cost',
+        'landId',
+        'landName',
+        'landType',
+        'price',
         'addedBy',
-        'status',
+        'isAvailable',
     ];
-    protected $primaryKey = 'productId';
+    protected $primaryKey = 'landId';
 
-    public function product_type()
+  public function owner()
     {
-        return $this->belongsTo(ProductType::class, 'productType', 'typeId'); // Assuming productType is the foreign key
-    }
-    public function added_by()
-    {
-        return $this->belongsTo(User::class, 'addedBy', 'id'); // Assuming addedBy is the foreign key
+        return $this->belongsTo(User::class, 'addedBy', 'id');
     }
 
-    public function product_images()
+    public function transactions()
     {
-        return $this->belongsTo(ProductImage::class, 'productId', 'productId'); // Assuming productId is the foreign key in ProductImage
+        return $this->morphMany(Transaction::class, 'transactionable');
     }
-
-    protected $hidden = ['deleted_at'];
    
 }

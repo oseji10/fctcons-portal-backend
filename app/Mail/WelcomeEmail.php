@@ -2,34 +2,27 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-
-class WelcomeEmail extends Mailable implements ShouldQueue
+class WelcomeEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $email;
-    public $firstName;
-    public $lastName;
-    public $password;
-    // public $languageId;
-      /**
+    public $user;
+    public $subject;
+
+    /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($email, $firstName, $lastName, $password)
+    public function __construct(User $user)
     {
-        $this->email = $email;
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->password = $password;
-        // $this->languageId = $languageId;
-
+        $this->user = $user;
+        $this->subject = 'Welcome to ' . config('app.name');
     }
 
     /**
@@ -39,19 +32,11 @@ class WelcomeEmail extends Mailable implements ShouldQueue
      */
     public function build()
     {
-        return $this->view('emails.welcome-email')
-                    ->subject('Application Started - FCT College of Nursing Sciences')
+        return $this->subject($this->subject)
+                    ->view('emails.welcome-email')
                     ->with([
-                        'email' => $this->email,
-                        'firstName' => $this->firstName,
-                        'lastName' => $this->lastName,
-                        
-                        'password' => $this->password,
-                        // 'languageId' => $this->languageId,
-                        'action_url' => "https://consap.fcthhss.abj.gov.ng",
-                        // 'login_url' => "https://nchf.resilience.ng/login",
-                        
-                        'support_email' => "support.consap@fcthhss.abj.gov.ng",
+                        'user' => $this->user,
+                        'appName' => config('app.name'),
                     ]);
     }
 }

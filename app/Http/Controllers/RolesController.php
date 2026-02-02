@@ -6,16 +6,16 @@ use Illuminate\Http\Request;
 use App\Models\Role;
 class RolesController extends Controller
 {
-    public function RetrieveAll()
+    public function index()
     {
-        $roles = Roles::all();
+        $roles = Role::all();
         return response()->json($roles);
        
     }
 
-    public function admin_roles()
+    public function user_roles()
     {
-        $roles = Role::whereIn('roleId', [2, 3, 4])->get();
+        $roles = Role::whereIn('roleId', [1, 2])->get();
         return response()->json($roles);
        
     }
